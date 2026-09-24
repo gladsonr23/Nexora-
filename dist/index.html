@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Nexora — your academic workspace for notes, planning, revision, and focused study.">
+  <meta name="theme-color" content="#f5fafb">
+  <title>Nexora — Overview</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <script>
+    const systemTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    let initialTheme = systemTheme;
+    try {
+      const saved = localStorage.getItem('nexora-theme');
+      if (saved === 'light' || saved === 'dark') initialTheme = saved;
+    } catch (_) {}
+    document.documentElement.dataset.theme = initialTheme;
+    document.querySelector('meta[name="theme-color"]').content = initialTheme === 'dark' ? '#020608' : '#f5fafb';
+  </script>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <noscript>Nexora needs JavaScript to show the dashboard.</noscript>
+</body>
+</html>
