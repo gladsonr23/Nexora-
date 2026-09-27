@@ -40,6 +40,7 @@ const bookLogo = `<svg class="nx-book" viewBox="0 0 210 174" aria-hidden="true">
   <path class="nx-book-right" d="M190 30 C163 25 140 39 109 65 L109 151 C137 132 163 123 190 127 Z"/>
   <path class="nx-book-base" d="M8 52 L17 50 L17 139 C50 131 78 142 105 162 C132 142 160 131 193 139 L193 50 L202 52 L202 153 C165 142 134 150 105 170 C76 150 45 142 8 153 Z"/>
   <path class="nx-book-shade" d="M47 41 L47 115 C63 117 78 125 92 136 L92 75 C76 58 62 47 47 41 Z"/>
+  <path class="nx-book-n" d="M39 37 L57 45 L57 103 L89 137 L101 151 L101 65 L85 52 L85 105 L54 57 L39 49 Z"/>
   <g class="nx-flip-page"><path class="nx-book-page" d="M4 53 C24 30 47 17 89 8 L89 81 C52 88 27 101 4 116 Z" transform="translate(101 0)"/></g>
 </svg>`;
 document.body.innerHTML = `
@@ -78,6 +79,16 @@ document.body.innerHTML = `
           </div></section>
         </section>
         <section id="nx-module" class="nx-module-view" aria-labelledby="nx-module-title" hidden><p class="nx-eyebrow" id="nx-module-group"></p><div class="nx-module-title-row"><h1 id="nx-module-title"></h1><span class="nx-status-pill">Feature in development</span></div><p class="nx-module-description" id="nx-module-description"></p><div class="nx-module-placeholder"><span class="nx-placeholder-rule"></span><h2>Workspace coming together</h2><p id="nx-module-detail"></p><a class="nx-secondary-button" href="#overview">Back to overview ${icon('arrow')}</a></div></section>
+        <section id="nx-summarizer" class="nx-summarizer" aria-labelledby="nx-summarizer-title" hidden><p class="nx-eyebrow">Study workspace / One-Shot Summarizer</p><h1 id="nx-summarizer-title">Turn a YouTube lecture into study notes.</h1><p class="nx-module-description">Paste a video link. Nexora reads its title and captions, then makes clear, timestamped notes you can print or save.</p>
+          <div class="nx-summarizer-layout"><form class="nx-caption-form" id="nx-caption-form"><div class="nx-section-head"><div><p class="nx-kicker">Source</p><h2>YouTube lecture</h2></div><span class="nx-step-mark">01 / Paste link</span></div><label for="nx-video-url">Video link</label><input id="nx-video-url" name="sourceUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://www.youtube.com/watch?v=..." required><p class="nx-form-help">The lecture title and available captions are collected automatically. No upload or transcript paste needed.</p><p class="nx-form-error" id="nx-summarizer-error" role="alert" hidden></p><button class="nx-primary-button nx-generate-button" id="nx-generate" type="submit">Generate study notes ${icon('arrow')}</button><p class="nx-source-footnote">Works with videos that have accessible captions.</p></form>
+            <div class="nx-notes-column" id="nx-notes-column" hidden><div class="nx-notes-toolbar"><div><p class="nx-kicker">Output</p><h2>Your study guide</h2></div><span class="nx-step-mark" id="nx-note-status">Notes ready</span></div><article class="nx-study-note" id="nx-study-note" aria-live="polite"></article><div class="nx-notes-actions" id="nx-notes-actions"><button class="nx-secondary-button" id="nx-print-note" type="button">Open / Print PDF</button><button class="nx-secondary-button" id="nx-download-note" type="button">Download PDF</button><button class="nx-primary-button" id="nx-save-note" type="button">Save to Vault</button></div></div></div>
+          <div class="nx-language-warning" id="nx-language-warning" role="status" hidden><span aria-hidden="true">!</span><p>The given URL is in Non English language</p><button type="button" id="nx-dismiss-language-warning" aria-label="Dismiss language warning">×</button></div>
+        </section>
+        <section id="nx-vault-notes" class="nx-module-view" aria-labelledby="nx-vault-title" hidden><p class="nx-eyebrow">Study workspace</p><h1 id="nx-vault-title">Vault</h1><p class="nx-module-description">Keep original course files, generated study notes, extracted question banks, and analysis reports in this browser.</p><form class="nx-vault-uploader" id="nx-vault-upload-form"><div><p class="nx-kicker">Add material</p><h2>Upload files to Vault</h2><p>Store PDFs, text files, syllabi, assignments, and lecture slides for later use.</p></div><label class="nx-file-picker" for="nx-vault-file-input"><span>Choose files</span><input id="nx-vault-file-input" type="file" accept=".pdf,.txt,.doc,.docx,.ppt,.pptx,application/pdf,text/plain" multiple required></label><button class="nx-primary-button" id="nx-vault-upload" type="submit">Save to Vault ${icon('upload')}</button><p class="nx-pattern-progress" id="nx-vault-upload-status" role="status" hidden></p></form><div class="nx-vault-list" id="nx-vault-list"></div></section>
+        <section id="nx-pattern" class="nx-pattern" aria-labelledby="nx-pattern-title" hidden><p class="nx-eyebrow">Focus & insights / Prof Pattern Detector</p><h1 id="nx-pattern-title">See what your papers keep asking.</h1><p class="nx-module-description">Upload past question papers to spot repeated questions and marks weightage. These are historical counts, not predictions of the next exam.</p>
+          <div class="nx-pattern-intro"><form id="nx-pattern-form" class="nx-pattern-form"><div class="nx-section-head"><div><p class="nx-kicker">Question bank</p><h2>Add papers</h2></div><span class="nx-step-mark">01 / Choose source</span></div><div class="nx-pattern-source-actions"><label class="nx-secondary-button nx-pattern-upload-label" for="nx-pattern-file">${icon('upload')} Upload files</label><button class="nx-secondary-button" id="nx-pattern-vault-open" type="button">${icon('vault')} Get from Vault</button></div><input class="nx-pattern-file-input" id="nx-pattern-file" type="file" accept=".pdf,.txt,application/pdf,text/plain" multiple><div class="nx-pattern-vault-picker" id="nx-pattern-vault-picker" hidden><p class="nx-kicker">Files in Vault</p><div id="nx-pattern-vault-files"></div><button class="nx-primary-button" id="nx-pattern-vault-add" type="button">Add selected from Vault ${icon('arrow')}</button></div><label for="nx-pattern-year">Exam year or shared label <span class="nx-optional">optional</span></label><input id="nx-pattern-year" type="text" maxlength="20" placeholder="e.g. 2024 / Semester 5"><p class="nx-form-help">Uploaded originals are saved to Vault automatically. Scans are read by Tesseract and NVIDIA OCR, then Gemini and Groq cross-check the extracted questions.</p><p class="nx-pattern-progress" id="nx-pattern-progress" role="status" hidden></p><p class="nx-form-error" id="nx-pattern-error" role="alert" hidden></p><button class="nx-primary-button" id="nx-pattern-add" type="submit">Analyze uploaded files ${icon('arrow')}</button></form><div class="nx-pattern-sources"><p class="nx-kicker">Your sources</p><h2>Included papers</h2><div id="nx-pattern-papers"></div></div></div>
+          <div id="nx-pattern-results" class="nx-pattern-results" hidden><div class="nx-pattern-results-head"><div><p class="nx-kicker">Historical pattern</p><h2>Question-bank analysis</h2></div><p>Historical evidence supports revision priorities; it cannot predict the next exam.</p></div><div class="nx-pattern-stats" id="nx-pattern-stats"></div><div class="nx-pattern-charts"><section class="nx-pattern-card" aria-labelledby="nx-pattern-repeat-title"><h3 id="nx-pattern-repeat-title">Most repeated questions</h3><p>Number of distinct papers containing the question</p><div id="nx-pattern-repeat-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-topic-title"><h3 id="nx-pattern-topic-title">Topics by marks</h3><p>Based on extracted marks only. Edit topic names in the question list.</p><div id="nx-pattern-topic-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-trend-title"><h3 id="nx-pattern-trend-title">Repeated questions over time</h3><p>Share of questions in each year that match another paper.</p><div id="nx-pattern-trend-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-share-title"><h3 id="nx-pattern-share-title">Topic share</h3><p>Share of all detected question occurrences. Top topics shown.</p><div id="nx-pattern-share-chart"></div></section></div><section class="nx-pattern-question-section" aria-labelledby="nx-pattern-questions-title"><div class="nx-pattern-results-head"><div><p class="nx-kicker">Question detail</p><h2 id="nx-pattern-questions-title">All question groups</h2></div><label class="nx-pattern-filter" for="nx-pattern-sort">Explore <select id="nx-pattern-sort"><option value="frequency">Most repeated</option><option value="least-frequency">Least repeated</option><option value="marks">Highest marks</option><option value="least-marks">Lowest marks</option><option value="important">Most important topics</option><option value="least-important">Least important topics</option></select></label></div><div class="nx-pattern-ai-row"><button class="nx-secondary-button" id="nx-pattern-ai" type="button">Label topics with Gemini + Groq</button><p id="nx-pattern-ai-status" role="status">Importance uses observed repetitions and marks; AI helps label topics.</p></div><div id="nx-pattern-questions"></div></section></div>
+        </section>
         <section id="nx-settings" class="nx-module-view" aria-labelledby="nx-settings-title" hidden><p class="nx-eyebrow">Workspace preferences</p><h1 id="nx-settings-title">Settings</h1><p class="nx-module-description">Make this study space yours.</p><div class="nx-module-placeholder nx-settings-card"><span class="nx-placeholder-rule"></span><h2>Your profile</h2><p>Your name appears in the greeting and sidebar. It is saved only in this browser.</p><div class="nx-settings-row"><span><small>Display name</small><strong id="nx-settings-name">Student</strong></span><button class="nx-secondary-button" id="nx-edit-name" type="button">Change name</button></div></div></section>
       </main>
     </div>
@@ -178,7 +189,10 @@ function navigate() {
   const title = id === 'overview' ? 'Overview' : module?.name || (id === 'settings' ? 'Settings' : 'Overview');
   const actual = id === 'overview' || module || id === 'settings' ? id : 'overview';
   $('#nx-overview').hidden = actual !== 'overview';
-  $('#nx-module').hidden = actual === 'overview' || actual === 'settings';
+  $('#nx-module').hidden = actual === 'overview' || actual === 'settings' || actual === 'summarizer' || actual === 'vault' || actual === 'pattern';
+  $('#nx-summarizer').hidden = actual !== 'summarizer';
+  $('#nx-vault-notes').hidden = actual !== 'vault';
+  $('#nx-pattern').hidden = actual !== 'pattern';
   $('#nx-settings').hidden = actual !== 'settings';
   $('#nx-breadcrumb-page').textContent = title;
   document.title = `Nexora — ${title}`;
@@ -193,6 +207,7 @@ function navigate() {
     $('#nx-module-description').textContent = module?.short || 'Choose how Nexora works for you.';
     $('#nx-module-detail').textContent = module?.detail || 'Settings will be available as the team builds the full application.';
   }
+  if (actual === 'vault') renderVault();
   closeNav();
   window.scrollTo({top:0,behavior:'auto'});
 }
@@ -205,7 +220,7 @@ function toast(message) {
   clearTimeout(toast.timer);
   toast.timer = setTimeout(() => { el.hidden = true; }, 3600);
 }
-$('#nx-upload').addEventListener('click', () => { location.hash = '#vault'; toast('Vault upload will be connected when the feature is built.'); });
+$('#nx-upload').addEventListener('click', () => { location.hash = '#vault'; requestAnimationFrame(() => $('#nx-vault-file-input')?.focus()); });
 $('#nx-notifications').addEventListener('click', () => toast('No notifications in this sample workspace.'));
 const checks = $$('[data-task]');
 let savedTasks = [];
@@ -252,3 +267,213 @@ $('#nx-focus-reset').addEventListener('click', () => {
   $('#nx-focus-reset').hidden = true; renderClock();
 });
 renderClock();
+
+const captionForm = $('#nx-caption-form');
+let currentNote = null;
+function node(tag, className, value) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (value !== undefined) element.textContent = value;
+  return element;
+}
+function containsLatex(value) {
+  if (typeof value === 'string') {
+    const withoutCurrency = value.replace(/\$\s?\d[\d,]*(?:\.\d+)?/g, '');
+    return /\${1,2}|\\(?:frac|sqrt|sum|prod|int|lim|begin|end|text|mathrm|mathbf|mathit|left|right|cdot|times|alpha|beta|gamma|delta|theta|lambda|mu|pi|sigma|omega)\b|\\[A-Za-z]+\s*[\[{]|\\[()[\]{}]|[\^_]\s*\{/i.test(withoutCurrency);
+  }
+  if (Array.isArray(value)) return value.some(containsLatex);
+  if (value && typeof value === 'object') return Object.values(value).some(containsLatex);
+  return false;
+}
+function timeLink(timestamp, sourceUrl) {
+  const label = node('span', 'nx-note-timestamp', timestamp || 'Topic');
+  if (!timestamp || !sourceUrl) return label;
+  const match = timestamp.match(/(?:(\d+):)?(\d{1,2}):(\d{2})/);
+  if (!match) return label;
+  const seconds = Number(match[1] || 0) * 3600 + Number(match[2]) * 60 + Number(match[3]);
+  const link = node('a', 'nx-note-timestamp', timestamp);
+  const url = new URL(sourceUrl);
+  url.searchParams.set('t', String(seconds));
+  link.href = url.toString();
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.setAttribute('aria-label', `Watch lecture from ${timestamp}`);
+  return link;
+}
+function renderNote(note) {
+  const article = $('#nx-study-note');
+  article.replaceChildren();
+  article.append(node('p', 'nx-note-label', 'Nexora study guide'));
+  article.append(node('h2', '', note.title));
+  article.append(node('p', 'nx-note-overview', note.overview));
+  const source = node('p', 'nx-note-source', `Generated ${new Date(note.createdAt).toLocaleDateString('en-IN')}${note.sourceUrl ? ' · YouTube lecture' : ''}${note.provider ? ` · ${note.provider}` : ''}`);
+  article.append(source);
+  note.sections.forEach((section, index) => {
+    const wrapper = node('section', 'nx-note-section');
+    wrapper.append(timeLink(section.timestamp, note.sourceUrl));
+    wrapper.append(node('h3', '', `${String(index + 1).padStart(2, '0')}  ${section.heading}`));
+    const list = node('ul');
+    section.points.forEach(point => list.append(node('li', '', point)));
+    wrapper.append(list);
+    article.append(wrapper);
+  });
+  const recap = node('section', 'nx-note-section nx-note-recap');
+  recap.append(node('h3', '', 'Key takeaways'));
+  const list = node('ul');
+  note.takeaways.forEach(item => list.append(node('li', '', item)));
+  recap.append(list);
+  article.append(recap);
+  $('#nx-notes-column').hidden = false;
+  $('#nx-summarizer').classList.add('nx-has-notes');
+  $('#nx-note-status').textContent = 'Notes ready';
+}
+$('#nx-dismiss-language-warning').addEventListener('click', () => { $('#nx-language-warning').hidden = true; });
+captionForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const error = $('#nx-summarizer-error');
+  error.hidden = true;
+  const sourceUrl = $('#nx-video-url').value.trim();
+  if (!sourceUrl) { error.textContent = 'Paste a YouTube video link.'; error.hidden = false; $('#nx-video-url').focus(); return; }
+  $('#nx-language-warning').hidden = true;
+  const button = $('#nx-generate');
+  button.disabled = true;
+  button.textContent = 'Reading lecture…';
+  $('#nx-note-status').textContent = 'Reading captions and writing notes…';
+  try {
+    const response = await fetch('/api/summarize', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sourceUrl})});
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not generate notes.');
+    if (containsLatex(result.notes)) throw new Error('The notes contained LaTeX notation. Please generate again.');
+    currentNote = result.notes;
+    renderNote(currentNote);
+    $('#nx-language-warning').hidden = !result.languageWarning;
+    toast('Study notes are ready. Review them before saving.');
+  } catch (problem) {
+    error.textContent = problem.message === 'Failed to fetch' ? 'Open Nexora through the local server, not the HTML file. Run npm start.' : problem.message;
+    error.hidden = false;
+    if (currentNote) $('#nx-note-status').textContent = 'Previous notes shown';
+  } finally {
+    button.disabled = false;
+    button.innerHTML = `Generate study notes ${icon('arrow')}`;
+  }
+});
+function getVaultNotes() {
+  try { const notes = JSON.parse(localStorage.getItem('nexora-vault-notes') || '[]'); return Array.isArray(notes) ? notes : []; } catch (_) { return []; }
+}
+function getVaultItems(key) {
+  try { const items=JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(items) ? items : []; } catch (_) { return []; }
+}
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+function openVaultFile(file) {
+  const url=URL.createObjectURL(file.blob);
+  const viewer=window.open(url,'_blank');
+  if (!viewer) toast('Allow pop-ups to open this Vault file.');
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+function downloadVaultFile(file) {
+  const url=URL.createObjectURL(file.blob); const link=document.createElement('a');
+  link.href=url; link.download=file.name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1_000);
+}
+function studyGuidePdf(note) {
+  if (!note || containsLatex(note)) throw new Error('Cannot export notes containing LaTeX notation.');
+  return window.NexoraPdf.createStudyGuidePdf(note, window.jspdf?.jsPDF);
+}
+function openStudyGuidePdf(note) {
+  const viewer = window.open('', '_blank');
+  if (!viewer) return toast('Allow pop-ups for Nexora to open the PDF. You can still use Download PDF.');
+  try {
+    const url = URL.createObjectURL(studyGuidePdf(note).output('blob'));
+    viewer.location.href = url;
+  } catch (error) { viewer.close(); toast(error.message || 'Could not open this PDF.'); }
+}
+function downloadStudyGuidePdf(note) {
+  try { studyGuidePdf(note).save(window.NexoraPdf.filename(note)); }
+  catch (error) { toast(error.message || 'Could not download this PDF.'); }
+}
+async function renderVault() {
+  const list = $('#nx-vault-list');
+  list.replaceChildren();
+  const notes = getVaultNotes();
+  const papers = getVaultItems('nexora-vault-papers');
+  const reports = getVaultItems('nexora-vault-pattern-reports');
+  let files=[];
+  try { files=await window.NexoraVaultFileStore.list(); }
+  catch (_) { toast('Original files could not be read from browser storage.'); }
+  if (!notes.length && !papers.length && !reports.length && !files.length) {
+    const empty = node('div', 'nx-module-placeholder');
+    empty.append(node('h2', '', 'Your Vault is empty'));
+    empty.append(node('p', '', 'Generate study notes or analyze question papers, then save the result here.'));
+    const link = node('a', 'nx-secondary-button', 'Open One-Shot Summarizer');
+    link.href = '#summarizer';
+    empty.append(link);
+    list.append(empty);
+    return;
+  }
+  const section = title => { const heading=node('h2','nx-vault-heading',title); list.append(heading); };
+  const actions = (...buttons) => { const row=node('div','nx-vault-actions'); row.append(...buttons); return row; };
+  const actionButton = (label,handler,primary=false) => { const button=node('button',primary?'nx-primary-button':'nx-secondary-button',label); button.type='button'; button.addEventListener('click',handler); return button; };
+  if (files.length) {
+    section('Uploaded files');
+    files.forEach(file => {
+      const card=node('article','nx-vault-item');
+      const canAnalyze=/\.(pdf|txt)$/i.test(file.name);
+      card.append(node('span','nx-vault-item-type','ORIGINAL FILE'),node('strong','',file.name),node('small','',`${formatFileSize(file.size)} · ${new Date(file.createdAt).toLocaleDateString('en-IN')}`));
+      const fileActions=[actionButton('Open',()=>openVaultFile(file),true),actionButton('Download',()=>downloadVaultFile(file))];
+      if (canAnalyze) fileActions.push(actionButton('Use in detector',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-vault-files',{detail:[file.id]})));}));
+      fileActions.push(actionButton('Remove',async()=>{await window.NexoraVaultFileStore.remove(file.id);toast(`${file.name} removed from Vault.`);}));
+      card.append(actions(...fileActions)); list.append(card);
+    });
+  }
+  if (reports.length) {
+    section('Pattern reports');
+    reports.forEach(report => {
+      const card=node('article','nx-vault-item');
+      card.append(node('span','nx-vault-item-type','PDF ANALYSIS REPORT'),node('strong','',report.title || 'Prof Pattern Analysis'),node('small','',`${report.analysis?.paperCount || report.papers?.length || 0} papers · ${new Date(report.createdAt).toLocaleDateString('en-IN')}`));
+      card.append(actions(actionButton('Open PDF',()=>window.dispatchEvent(new CustomEvent('nexora:open-pattern-pdf',{detail:report})),true),actionButton('Load analysis',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-report',{detail:report})));})));
+      list.append(card);
+    });
+  }
+  if (papers.length) {
+    section('Question banks');
+    papers.forEach(paper => {
+      const card=node('article','nx-vault-item');
+      card.append(node('span','nx-vault-item-type','EXTRACTED QUESTION BANK'),node('strong','',paper.filename),node('small','',`${paper.questions?.length || 0} questions · ${paper.year || 'No year'} · ${paper.processing || 'Text extraction'}`));
+      card.append(actions(actionButton('Add to detector',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-paper',{detail:paper})));},true)));
+      list.append(card);
+    });
+  }
+  if (notes.length) section('Study notes');
+  notes.forEach(note => {
+    const card = node('article', 'nx-vault-item');
+    card.append(node('span', 'nx-vault-item-type', 'PDF STUDY GUIDE'),node('strong', '', note.title),node('small', '', `${note.sections.length} sections · ${new Date(note.createdAt).toLocaleDateString('en-IN')}`));
+    card.append(actions(actionButton('Open PDF',()=>openStudyGuidePdf(note),true),actionButton('Download',()=>downloadStudyGuidePdf(note))));
+    list.append(card);
+  });
+}
+window.addEventListener('nexora:vault-updated',() => { if(location.hash==='#vault') renderVault(); });
+$('#nx-vault-upload-form').addEventListener('submit',async event => {
+  event.preventDefault();
+  const input=$('#nx-vault-file-input'); const status=$('#nx-vault-upload-status'); const button=$('#nx-vault-upload'); const files=[...(input.files || [])];
+  if (!files.length) return;
+  if (files.some(file=>file.size>25_000_000)) return toast('Each Vault file must be under 25 MB.');
+  button.disabled=true; status.hidden=false; status.textContent=`Saving ${files.length} file${files.length===1?'':'s'} to Vault…`;
+  try { await window.NexoraVaultFileStore.putMany(files); input.value=''; status.textContent=`Saved ${files.length} file${files.length===1?'':'s'} to Vault.`; toast('Files saved to Vault.'); }
+  catch (problem) { status.textContent=problem.message || 'Could not save these files to Vault.'; }
+  finally { button.disabled=false; }
+});
+$('#nx-save-note').addEventListener('click', () => {
+  if (!currentNote || containsLatex(currentNote)) return toast('Cannot save notes containing LaTeX notation.');
+  const notes = getVaultNotes();
+  if (!currentNote.id) currentNote.id = crypto.randomUUID();
+  const next = [currentNote, ...notes.filter(note => note.id !== currentNote.id)].slice(0, 20);
+  try { localStorage.setItem('nexora-vault-notes', JSON.stringify(next)); toast('Saved to Vault. Click it there to open its PDF.'); }
+  catch (_) { toast('Browser storage is full or unavailable. Download the PDF instead.'); }
+});
+$('#nx-print-note').addEventListener('click', () => {
+  if (currentNote) openStudyGuidePdf(currentNote);
+});
+$('#nx-download-note').addEventListener('click', () => { if (currentNote) downloadStudyGuidePdf(currentNote); });

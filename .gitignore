@@ -1,0 +1,5 @@
+/server/.env
+node_modules/
+.npm-cache/
+output/
+tmp/

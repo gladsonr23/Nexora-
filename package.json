@@ -1,0 +1,17 @@
+{
+  "name": "nexora-dashboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.9",
+    "@tesseract.js-data/eng": "^1.0.0",
+    "jspdf": "^4.2.1",
+    "pdfjs-dist": "^6.3.289",
+    "tesseract.js": "^7.0.0",
+    "youtube-transcript-plus": "^2.0.2"
+  }
+}

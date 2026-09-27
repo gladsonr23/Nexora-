@@ -1,0 +1,4 @@
+Sample question paper - 2024 (fictional)
+Q1. Describe design patterns with an example. [10]
+Q2. Explain file handling in Java. [5]
+Q3. Discuss the principles of object-oriented programming. [8]
