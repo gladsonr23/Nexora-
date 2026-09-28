@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { jsPDF } from 'jspdf';
-import { analyzeQuestionPapers, extractPdfPages, parseQuestionPaper } from './pattern.js';
+import { analyzeQuestionPapers, extractPdfPages, inferExamYear, parseQuestionPaper } from './pattern.js';
 
 test('extracts numbered questions and marks from plain text', () => {
   const paper = parseQuestionPaper([{number:1,text:'Advanced Programming Practices\n1. Explain design patterns with an example. [8]\n2. Describe exception handling in Java. (5 marks)'}], {filename:'2024.txt',year:'2024'});
@@ -30,4 +30,10 @@ test('extracts text from a generated PDF question paper', async () => {
   assert.equal(paper.questions.length, 1);
   assert.match(paper.questions[0].text, /polymorphism/);
   assert.equal(paper.questions[0].marks, 8);
+});
+
+test('infers four-digit exam years from dated filenames', () => {
+  assert.equal(inferExamYear('21CSC202J 25.02.2026 FN.pdf'),'2026');
+  assert.equal(inferExamYear('21CSC202J 25.01.2025.pdf'),'2025');
+  assert.equal(inferExamYear('question-bank.pdf'),'');
 });

@@ -22,3 +22,12 @@ test('uses Gemini and Groq to cross-check OCR text',async () => {
   assert.deepEqual(result.providers,['Gemini','Groq']);
   assert.equal(result.questions[0].confidence,'cross-checked');
 });
+
+test('uses numeric consensus when one OCR model mistakes 8 marks for 3',() => {
+  const result=reconcileQuestionExtractions(
+    [{number:1,text:'Explain resource allocation methods.',marks:3,page:1}],
+    [{number:1,text:'Explain resource allocation methods.',marks:8,page:1}],
+    [{number:1,text:'Explain resource allocation methods.',marks:8,page:1}]
+  );
+  assert.equal(result[0].marks,8);
+});

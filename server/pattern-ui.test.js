@@ -36,3 +36,10 @@ test('pattern detector offers upload and selection from Vault', async () => {
   assert.match(app, /Add selected from Vault/)
   assert.match(pattern, /storeFilesInVault/)
 })
+
+test('pattern working papers are session-scoped and uploads accumulate', async () => {
+  const pattern = await load('pattern.js')
+  assert.match(pattern, /sessionStorage\.setItem\('nexora-pattern-papers'/)
+  assert.match(pattern, /pendingFiles/)
+  assert.match(pattern, /sortPapersByYear/)
+})

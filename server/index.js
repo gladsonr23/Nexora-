@@ -4,10 +4,12 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { generateStudyNotes } from './ai.js';
 import { fetchYouTubeLecture, parseYouTubeUrl } from './youtube.js';
-import { analyzeQuestionPapers, parseQuestionPaper } from './pattern.js';
+import { analyzeQuestionPapers, inferExamYear, parseQuestionPaper } from './pattern.js';
 import { extractPdfWithOcr } from './pattern-ocr.js';
 import { analyzeTopics } from './pattern-topics.js';
 import { extractQuestionsWithAi } from './pattern-ai-extract.js';
+import { moderateNickname } from './nickname-moderation.js';
+import { chatStudyAssistant } from './study-chat.js';
 
 try { process.loadEnvFile(fileURLToPath(new URL('./.env', import.meta.url))); } catch (_) {}
 
@@ -43,7 +45,7 @@ async function limitedBody(request, limit) {
 
 async function extractPatternPaper(request, response, url) {
   const filename = (url.searchParams.get('name') || 'Question paper').slice(0, 120);
-  const year = (url.searchParams.get('year') || '').slice(0, 20);
+  const year = inferExamYear(filename,(url.searchParams.get('year') || '').slice(0, 20));
   const pdf = filename.toLowerCase().endsWith('.pdf');
   const textFile = filename.toLowerCase().endsWith('.txt');
   if (!pdf && !textFile) return json(response, 415, {error:'Upload a PDF or TXT question paper.'});
@@ -51,8 +53,9 @@ async function extractPatternPaper(request, response, url) {
     const bytes = await limitedBody(request, 12_000_000);
     if (!bytes.length) return json(response, 400, {error:'The selected file is empty.'});
     if (pdf && bytes.subarray(0, 5).toString() !== '%PDF-') return json(response, 400, {error:'This file is not a valid PDF.'});
-    const pages = pdf ? await extractPdfWithOcr(bytes,{nvidiaKey:process.env.NVIDIA_API_KEY}) : [{number:1,text:bytes.toString('utf8'),source:'selectable'}];
-    if (!pages.some(page => page.text.trim())) return json(response, 422, {error:'Neither OCR engine found readable text. Try a clearer scan.'});
+    const nvidiaKey=process.env.NVIDIA_API_KEY;
+    const pages = pdf ? await extractPdfWithOcr(bytes,{nvidiaKey,llamaKey:process.env.LLAMA_OCR_API_KEY || nvidiaKey}) : [{number:1,text:bytes.toString('utf8'),source:'selectable'}];
+    if (!pages.some(page => page.text.trim())) return json(response, 422, {error:'The OCR tools found no readable text. Try a clearer scan.'});
     const paper = parseQuestionPaper(pages, {filename,year});
     const scanned = pages.some(page => page.source === 'ocr');
     let crossCheck = {providers:[],warnings:[]};
@@ -63,7 +66,7 @@ async function extractPatternPaper(request, response, url) {
     if (!paper.questions.length) return json(response, 422, {error:'Nexora could not identify questions in this paper. Try a clearer scan or another copy.'});
     paper.id=crypto.randomUUID();
     paper.addedAt=new Date().toISOString();
-    paper.processing=scanned?'Tesseract + NVIDIA OCR + AI cross-check':'Selectable PDF text';
+    paper.processing=scanned?'Tesseract + NVIDIA OCR + Llama Vision + AI cross-check':'Selectable PDF text';
     json(response, 200, {paper,processing:{scanned,providers:crossCheck.providers,warnings:crossCheck.warnings,ocrAgreement:pages.filter(page=>page.source==='ocr').map(page=>page.agreement)}});
   } catch (error) { json(response, 422, {error:error.message || 'Could not read this question paper.'}); }
 }
@@ -102,12 +105,35 @@ async function summarize(request, response) {
   }
 }
 
+async function verifyNickname(request,response) {
+  try {
+    const bytes = await limitedBody(request,2_000);
+    const input = JSON.parse(bytes.toString('utf8'));
+    const result = await moderateNickname(input.nickname,{geminiKey:process.env.GEMINI_API_KEY,groqKey:process.env.GROQ_API_KEY});
+    json(response,200,result);
+  } catch (error) {
+    const invalid = /between 2 and 24|letters, numbers/i.test(error.message || '');
+    json(response,invalid ? 400 : 503,{error:error.message || 'Nickname verification failed.'});
+  }
+}
+
+async function assistantChat(request,response) {
+  try {
+    const bytes=await limitedBody(request,50_000);
+    const input=JSON.parse(bytes.toString('utf8'));
+    const result=await chatStudyAssistant(input.messages,{geminiKey:process.env.GEMINI_API_KEY,groqKey:process.env.GROQ_API_KEY});
+    json(response,200,result);
+  } catch (error) { json(response,502,{error:error.message || 'The study assistant is unavailable.'}); }
+}
+
 http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${host}:${port}`);
   if (url.pathname === '/api/summarize' && request.method === 'POST') return summarize(request, response);
   if (url.pathname === '/api/pattern/extract' && request.method === 'POST') return extractPatternPaper(request, response, url);
   if (url.pathname === '/api/pattern/analyze' && request.method === 'POST') return analyzePattern(request, response);
   if (url.pathname === '/api/pattern/topics' && request.method === 'POST') return topicImportance(request,response);
+  if (url.pathname === '/api/avatar/nickname' && request.method === 'POST') return verifyNickname(request,response);
+  if (url.pathname === '/api/assistant/chat' && request.method === 'POST') return assistantChat(request,response);
   if (request.method !== 'GET') return json(response, 405, {error:'Method not allowed.'});
   const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
   const safe = path.resolve(dist, `.${pathname}`);

@@ -32,14 +32,21 @@ export function reconcileQuestionExtractions(primary=[],secondary=[],determinist
   const add = (question,source) => {
     const clean=normalizeQuestion(question); if (!clean) return;
     let group=groups.find(item => item.question.number===clean.number && (item.question.page===clean.page || similarity(item.question.text,clean.text)>=.45));
-    if (!group) { group={question:clean,sources:new Set()}; groups.push(group); }
-    else group.question={...cleaner(group.question,clean),marks:group.question.marks ?? clean.marks,page:Math.min(group.question.page,clean.page)};
+    if (!group) { group={question:{...clean,marks:null},sources:new Set(),markVotes:[]}; groups.push(group); }
+    else group.question={...cleaner(group.question,clean),marks:null,page:Math.min(group.question.page,clean.page)};
+    if (clean.marks !== null) group.markVotes.push({value:clean.marks,source});
     group.sources.add(source);
   };
   primary.forEach(item => add(item,'Gemini'));
   secondary.forEach(item => add(item,'Groq'));
   deterministic.forEach(item => add(item,'Parser'));
-  return groups.map(group => ({...group.question,confidence:group.sources.size>=2?'cross-checked':'single-source',sources:[...group.sources]})).sort((a,b)=>a.number-b.number || a.page-b.page);
+  return groups.map(group => {
+    const counts=new Map();
+    group.markVotes.forEach(vote=>counts.set(vote.value,(counts.get(vote.value)||0)+1));
+    const parserVote=group.markVotes.find(vote=>vote.source==='Parser')?.value;
+    const marks=[...counts].sort((a,b)=>b[1]-a[1] || (a[0]===parserVote?-1:b[0]===parserVote?1:0))[0]?.[0] ?? null;
+    return {...group.question,marks,confidence:group.sources.size>=2?'cross-checked':'single-source',sources:[...group.sources]};
+  }).sort((a,b)=>a.number-b.number || a.page-b.page);
 }
 
 async function gemini(prompt,key,fetchImpl) {

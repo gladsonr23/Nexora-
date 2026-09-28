@@ -39,6 +39,7 @@
         type: file.type || 'application/octet-stream',
         size: file.size,
         createdAt: new Date().toISOString(),
+        sessionId: window.NexoraSession?.id || null,
         blob: file
       };
       await transact('readwrite', store => store.put(record));

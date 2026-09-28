@@ -21,11 +21,15 @@
   const vaultAdd = $('#nx-pattern-vault-add');
   let aiTopics = new Map();
   let papers = [];
+  let pendingFiles = [];
+  let legacyPapers = [];
   let topicOverrides = {};
   let analysis = null;
   try {
-    const saved = JSON.parse(localStorage.getItem('nexora-pattern-papers') || '[]');
+    const saved = JSON.parse(sessionStorage.getItem('nexora-pattern-papers') || '[]');
     if (Array.isArray(saved)) papers = saved.filter(paper => paper && Array.isArray(paper.questions)).slice(0, 30);
+    const legacy = JSON.parse(localStorage.getItem('nexora-pattern-papers') || '[]');
+    if (Array.isArray(legacy)) legacyPapers = legacy.filter(paper => paper && Array.isArray(paper.questions));
     const savedTopics = JSON.parse(localStorage.getItem('nexora-pattern-topics') || '{}');
     if (savedTopics && typeof savedTopics === 'object' && !Array.isArray(savedTopics)) topicOverrides = savedTopics;
   } catch (_) {}
@@ -34,7 +38,7 @@
   const topicKey = question => question.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
   const topicOf = group => topicOverrides[topicKey(group.question)] || aiTopics.get(group.id)?.topic || group.topic;
   const persist = () => {
-    try { localStorage.setItem('nexora-pattern-papers', JSON.stringify(papers)); return true; }
+    try { sessionStorage.setItem('nexora-pattern-papers', JSON.stringify(papers)); return true; }
     catch (_) { return false; }
   };
   const persistTopics = () => {
@@ -46,10 +50,17 @@
   const writeStore = (key,value) => { try { localStorage.setItem(key,JSON.stringify(value)); return true; } catch (_) { return false; } };
   function savePapersToVault(added) {
     const stored=readStore('nexora-vault-papers');
-    const merged=[...added,...stored.filter(item => !added.some(paper => paper.id===item.id))].slice(0,30);
+    const sessionId=window.NexoraSession?.id || null;
+    const tagged=added.map(paper=>({...paper,sessionId:paper.sessionId === undefined ? sessionId : paper.sessionId}));
+    const merged=[...tagged,...stored.filter(item => !tagged.some(paper => paper.id===item.id))].slice(0,60);
     writeStore('nexora-vault-papers',merged);
     window.dispatchEvent(new Event('nexora:vault-updated'));
   }
+  if (legacyPapers.length) {
+    savePapersToVault(legacyPapers.map(paper=>({...paper,sessionId:null})));
+    try { localStorage.removeItem('nexora-pattern-papers'); } catch (_) {}
+  }
+  const sortPapersByYear = values => values.sort((a,b)=>(Number(b.year)||0)-(Number(a.year)||0) || String(a.filename).localeCompare(String(b.filename)));
   const reportActions=node('div','nx-pattern-report-actions');
   const saveReportButton=node('button','nx-primary-button','Save report to Vault'); saveReportButton.type='button';
   const printReportButton=node('button','nx-secondary-button','Open / Print PDF'); printReportButton.type='button';
@@ -66,7 +77,7 @@
     });
     const years=[...new Set(papers.map(paper=>paper.year).filter(year=>/^\d{4}$/.test(year)))].sort();
     const trend=years.map(year => { const entries=analysis.groups.flatMap(group=>group.occurrences.filter(item=>item.year===year).map(()=>group)); return {year,value:entries.length?Math.round(100*entries.filter(group=>group.paperCount>1).length/entries.length):0}; });
-    return {id:crypto.randomUUID(),title:'Prof Pattern Analysis',createdAt:new Date().toISOString(),papers:structuredClone(papers),analysis:structuredClone(analysis),topics:[...topicMap.values()].sort((a,b)=>b.marks-a.marks||b.count-a.count),trend,aiTopics:[...aiTopics.entries()]};
+    return {id:crypto.randomUUID(),title:'Prof Pattern Analysis',createdAt:new Date().toISOString(),sessionId:window.NexoraSession?.id || null,papers:structuredClone(papers),analysis:structuredClone(analysis),topics:[...topicMap.values()].sort((a,b)=>b.marks-a.marks||b.count-a.count),trend,aiTopics:[...aiTopics.entries()]};
   }
   function patternPdf(report) { return window.NexoraPdf.createPatternReportPdf(report,window.jspdf?.jsPDF); }
   function openPatternPdf(report) {
@@ -83,7 +94,11 @@
       papersList.append(node('p', 'nx-pattern-empty', 'No papers yet. Add your first question paper to begin.'));
       return;
     }
+    sortPapersByYear(papers);
+    let renderedYear='';
     papers.forEach((paper, index) => {
+      const year=paper.year || 'No year';
+      if (year !== renderedYear) { papersList.append(node('h3','nx-pattern-year-heading',year)); renderedYear=year; }
       const row = node('div', 'nx-pattern-paper');
       const info = node('div');
       info.append(node('strong', '', paper.filename), node('small', '', `${paper.year || 'No year'} · ${paper.questions.length} questions · ${paper.pageCount || 1} ${paper.pageCount === 1 ? 'page' : 'pages'}`));
@@ -100,6 +115,25 @@
       papersList.append(row);
     });
   }
+
+  function renderPendingFiles() {
+    const target=$('#nx-pattern-selected-files');
+    target.replaceChildren();
+    target.hidden=!pendingFiles.length;
+    pendingFiles.forEach((file,index)=>{
+      const row=node('div','nx-pattern-selected-file');
+      row.append(node('span','',file.name));
+      const remove=node('button','','Remove'); remove.type='button'; remove.setAttribute('aria-label',`Remove ${file.name}`);
+      remove.addEventListener('click',()=>{pendingFiles.splice(index,1);renderPendingFiles();});
+      row.append(remove);target.append(row);
+    });
+    addButton.firstChild.textContent=pendingFiles.length ? `Analyze ${pendingFiles.length} selected file${pendingFiles.length===1?'':'s'} ` : 'Analyze selected files ';
+  }
+  fileInput.addEventListener('change',()=>{
+    const selected=[...(fileInput.files || [])];
+    selected.forEach(file=>{if(!pendingFiles.some(item=>item.name===file.name && item.size===file.size && item.lastModified===file.lastModified)) pendingFiles.push(file);});
+    fileInput.value=''; renderPendingFiles(); setError('');
+  });
 
   const metric = (label, value, note) => {
     const card = node('div');
@@ -299,17 +333,17 @@
         } catch (problem) { failures.push(`${file.name}: ${problem.message || 'Could not read this paper.'}`); }
       }
       if (added.length) {
-        papers.push(...added); persist(); savePapersToVault(added); form.reset(); renderPapers(); await analyze();
+        papers.push(...added); sortPapersByYear(papers); persist(); savePapersToVault(added); pendingFiles=[]; form.reset(); renderPendingFiles(); renderPapers(); await analyze();
         progress.textContent=`Added ${added.length} paper${added.length===1?'':'s'}. The original files and extracted question banks are in Vault.`;
       }
       if (failures.length) setError(failures.join(' '));
     } catch (problem) { setError(problem.message || 'Could not save or analyze these papers.'); }
-    finally { addButton.disabled = false; vaultAdd.disabled=false; addButton.innerHTML = 'Analyze uploaded files <svg class="nx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>'; if(!added.length) progress.hidden=true; }
+    finally { addButton.disabled = false; vaultAdd.disabled=false; addButton.innerHTML = 'Analyze selected files <svg class="nx-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>'; renderPendingFiles(); if(!added.length) progress.hidden=true; }
   }
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    await processFiles([...(fileInput.files || [])], {storeOriginals:true});
+    await processFiles([...pendingFiles], {storeOriginals:true});
   });
 
   async function renderVaultPicker() {

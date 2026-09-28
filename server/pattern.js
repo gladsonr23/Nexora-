@@ -2,6 +2,12 @@ import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 const STOP_WORDS = new Set('a an and are as at be between by can compare define describe difference differentiate discuss do does explain for from give how in into is it its list mention of on or outline the their to what which with write you your short note notes advantages disadvantages following'.split(' '));
 
+export function inferExamYear(filename, supplied = '') {
+  const fromFilename = String(filename || '').match(/(?:^|\D)(20\d{2})(?=\D|$)/)?.[1];
+  if (fromFilename) return fromFilename;
+  return String(supplied || '').match(/(?:^|\D)(20\d{2})(?=\D|$)/)?.[1] || '';
+}
+
 export async function extractPdfPages(bytes) {
   const task = getDocument({ data: new Uint8Array(bytes), useSystemFonts: true });
   const document = await task.promise;
