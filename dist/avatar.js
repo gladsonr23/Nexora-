@@ -102,12 +102,12 @@
       <footer><button class="nx-secondary-button" id="nx-avatar-default" type="button">Use default</button><button class="nx-primary-button nx-avatar-save" id="nx-avatar-save" type="button">Save avatar</button></footer>
     </aside>
     <aside class="nx-companion-chat" id="nx-companion-chat" role="dialog" aria-modal="false" aria-labelledby="nx-chat-title" hidden>
-      <header><div class="nx-chat-avatar" id="nx-chat-avatar-art" aria-hidden="true"></div><div><p class="nx-kicker">Study companion</p><h2 id="nx-chat-title">Companion</h2><small>General academic knowledge</small></div><button class="nx-avatar-close" id="nx-chat-close" type="button" aria-label="Close study chat">×</button></header>
-      <div class="nx-chat-tools"><span>Vault grounding comes with RAG</span><button type="button" id="nx-chat-customize">Customize avatar</button></div>
+      <header><div class="nx-chat-avatar" id="nx-chat-avatar-art" aria-hidden="true"></div><div><p class="nx-kicker">Study companion</p><h2 id="nx-chat-title">Companion</h2><small id="nx-drawer-rag-status">Session RAG</small></div><button class="nx-avatar-close" id="nx-chat-close" type="button" aria-label="Close study chat">×</button></header>
+      <div class="nx-chat-tools"><span>Answers only from this session</span><button type="button" id="nx-chat-customize">Customize avatar</button></div>
       <div class="nx-chat-messages" id="nx-drawer-chat-messages" aria-live="polite"></div>
       <div class="nx-chat-suggestions" id="nx-drawer-chat-suggestions"></div>
-      <form class="nx-chat-form" id="nx-drawer-chat-form"><label class="nx-sr-only" for="nx-drawer-chat-input">Ask a study question</label><textarea id="nx-drawer-chat-input" rows="2" maxlength="3000" placeholder="Ask a study question…" required></textarea><button class="nx-primary-button" type="submit" aria-label="Send question">Send</button></form>
-      <p class="nx-chat-disclaimer">AI can make mistakes. Check important details with your course material.</p>
+      <form class="nx-chat-form" id="nx-drawer-chat-form"><label class="nx-sr-only" for="nx-drawer-chat-input">Ask about this session</label><textarea id="nx-drawer-chat-input" rows="2" maxlength="3000" placeholder="Ask about this session…" required></textarea><button class="nx-primary-button" type="submit" aria-label="Send question">Send</button></form>
+      <p class="nx-chat-disclaimer">Nexora answers from indexed session materials. Verify important details using the citations.</p>
     </aside>`;
   document.body.append(root);
 
@@ -122,20 +122,25 @@
   let draftNickname = savedNickname;
   let lastFocus = null;
   let chatBusy = false;
-  const CHAT_KEY = 'nexora-assistant-chat';
-  const suggestions = ['Explain a difficult concept', 'Quiz me on a topic', 'Make a revision plan'];
+  const sessionId = window.NexoraSession?.id || 'session';
+  const CHAT_KEY = `nexora-rag-chat-${sessionId}`;
+  const suggestions = [
+    {label:'Summarize this session',prompt:'Summarize this session'},
+    {label:'Create a quiz',target:'#quiz'},
+    {label:'Analyze exam patterns',target:'#pattern'}
+  ];
 
   const readChat = () => {
     try {
       const value = JSON.parse(sessionStorage.getItem(CHAT_KEY) || '[]');
-      return Array.isArray(value) ? value.filter(item => ['user','assistant'].includes(item?.role) && typeof item?.content === 'string').slice(-18) : [];
+      return Array.isArray(value) ? value.filter(item => ['user','assistant'].includes(item?.role) && typeof item?.content === 'string').map(item => ({...item,citations:Array.isArray(item.citations)?item.citations:[]})).slice(-18) : [];
     } catch (_) { return []; }
   };
   let chatMessages = readChat();
 
   function welcomeMessage() {
     const name = savedNickname || 'your study companion';
-    return `Hi, I’m ${name}. Ask me to explain a concept, test your understanding, or help plan a revision session.`;
+    return `Hi, I’m ${name}. Ask me about the PDFs, notes, and question banks used in this session.`;
   }
 
   function saveChat() {
@@ -156,6 +161,20 @@
         const content = document.createElement('p');
         content.textContent = message.content;
         bubble.append(label,content);
+        if (message.role === 'assistant' && message.citations?.length) {
+          const citations = document.createElement('div');
+          citations.className = 'nx-chat-citations';
+          message.citations.forEach(citation => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'nx-chat-citation';
+            const location = Number(citation.page) > 0 ? ` · p. ${citation.page}` : citation.section ? ` · ${citation.section}` : '';
+            button.textContent = `${citation.title || citation.filename || 'Session source'}${location}`;
+            button.addEventListener('click', () => window.dispatchEvent(new CustomEvent('nexora:open-rag-citation',{detail:citation})));
+            citations.append(button);
+          });
+          bubble.append(citations);
+        }
         container.append(bubble);
       });
       if (chatBusy) {
@@ -170,12 +189,15 @@
       const container = $(selector);
       if (!container) return;
       container.replaceChildren();
-      suggestions.forEach(text => {
+      suggestions.forEach(action => {
         const button = document.createElement('button');
         button.type = 'button';
-        button.textContent = text;
+        button.textContent = action.label;
         button.disabled = chatBusy;
-        button.addEventListener('click', () => sendMessage(text));
+        button.addEventListener('click', () => {
+          if(action.target) { closeChat(false); location.hash=action.target; return; }
+          sendMessage(action.prompt);
+        });
         container.append(button);
       });
     });
@@ -194,7 +216,7 @@
     const title = $('#nx-assistant-avatar-title');
     const copy = $('#nx-assistant-avatar-copy');
     if (title) title.textContent = savedNickname || (saved ? 'Your custom companion' : 'Default profile');
-    if (copy) copy.textContent = savedNickname ? `${savedNickname} is ready to help you study.` : 'Ready to explain concepts, quiz you, and plan revision.';
+    if (copy) copy.textContent = savedNickname ? `${savedNickname} is ready to answer from this session.` : 'Ready to answer from this session’s files.';
     $('#nx-chat-title').textContent = savedNickname || 'Companion';
     $('#nx-avatar-rail-name').textContent = savedNickname || 'Companion';
     renderChat();
@@ -244,6 +266,7 @@
   function openChat() {
     if (!saved) { openDrawer(true); return; }
     lastFocus = document.activeElement;
+    window.NexoraRag?.sync(false);
     renderChat();
     chatDrawer.hidden = false;
     $('#nx-avatar-backdrop').hidden = false;
@@ -270,6 +293,7 @@
   async function sendMessage(rawText) {
     const text = String(rawText || '').trim();
     if (!text || chatBusy) return;
+    const history = chatMessages.slice(-8).map(({role,content}) => ({role,content}));
     chatMessages.push({role:'user',content:text});
     chatMessages = chatMessages.slice(-18);
     saveChat();
@@ -277,15 +301,16 @@
     ['#nx-drawer-chat-input','#nx-page-chat-input'].forEach(selector => { const input = $(selector); if (input) input.value = ''; });
     renderChat();
     try {
-      const response = await fetch('/api/assistant/chat',{
+      await window.NexoraRag?.ensureReady();
+      const response = await fetch('/api/rag/chat',{
         method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({messages:chatMessages})
+        body:JSON.stringify({sessionId,question:text,history})
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.reply) throw new Error(result.error || 'The study assistant is unavailable right now.');
-      chatMessages.push({role:'assistant',content:String(result.reply)});
+      if (!response.ok || !result.answer) throw new Error(result.error || 'The session assistant is unavailable right now.');
+      chatMessages.push({role:'assistant',content:String(result.answer),citations:Array.isArray(result.citations)?result.citations:[],provider:result.provider || ''});
     } catch (error) {
-      chatMessages.push({role:'assistant',content:error.message || 'I could not answer just now. Please try again.'});
+      chatMessages.push({role:'assistant',content:error.message || 'I could not search this session just now. Please try again.',citations:[]});
     } finally {
       chatBusy = false;
       chatMessages = chatMessages.slice(-18);

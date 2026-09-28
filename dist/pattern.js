@@ -253,22 +253,26 @@
     analysis.groups.forEach(group => topics.set(topicOf(group),(topics.get(topicOf(group)) || 0)+group.count));
     const ranked = [...topics].sort((a,b) => b[1]-a[1]);
     if (!ranked.length) return;
-    const slices = ranked.slice(0,4);
-    const other = ranked.slice(4).reduce((sum,item) => sum+item[1],0);
-    if (other) slices.push(['Other topics',other]);
+    const slices = ranked;
     const total = slices.reduce((sum,item) => sum+item[1],0);
-    const palette = ['var(--nx-accent)','var(--nx-secondary)','var(--nx-chart-3)','var(--nx-chart-4)','var(--nx-chart-5)'];
+    const palette = ['#08778d','#f6b51b','#2fa082','#8963be','#e5685c','#3a7dcd','#c54b8f','#78a936','#e68232','#4e5bb2','#cd4c5d','#20a4bb'];
     const wrap = node('div','nx-pattern-share');
     const svg = svgEl('svg',{viewBox:'0 0 220 220',role:'img','aria-label':`Topic share: ${slices.map(([label,count]) => `${label} ${count} of ${total}`).join(', ')}`});
-    let progress = 0;
+    let angle = -Math.PI/2;
     slices.forEach(([label,count],index) => {
-      const circle = svgEl('circle',{cx:110,cy:110,r:76,fill:'none',stroke:palette[index],'stroke-width':28,'stroke-dasharray':`${count/total*477.5} 477.5`,'stroke-dashoffset':-progress*477.5,transform:'rotate(-90 110 110)',tabindex:0,'aria-label':`${label}: ${count} questions (${Math.round(100*count/total)}%)`});
-      const title = svgEl('title'); title.textContent = `${label}: ${count} questions (${Math.round(100*count/total)}%)`; circle.append(title); svg.append(circle);
-      progress += count/total;
+      const end=angle+Math.PI*2*count/total; const color=palette[index%palette.length];
+      const title = svgEl('title'); title.textContent = `${label}: ${count} questions (${Math.round(100*count/total)}%)`;
+      if(slices.length===1) {
+        const circle=svgEl('circle',{cx:110,cy:110,r:84,fill:color,stroke:'var(--nx-surface)','stroke-width':2,tabindex:0,'aria-label':title.textContent});circle.append(title);svg.append(circle);
+      } else {
+        const x1=110+Math.cos(angle)*84,y1=110+Math.sin(angle)*84,x2=110+Math.cos(end)*84,y2=110+Math.sin(end)*84;
+        const wedge=svgEl('path',{d:`M 110 110 L ${x1} ${y1} A 84 84 0 ${end-angle>Math.PI?1:0} 1 ${x2} ${y2} Z`,fill:color,stroke:'var(--nx-surface)','stroke-width':1.5,tabindex:0,'aria-label':title.textContent});wedge.append(title);svg.append(wedge);
+      }
+      angle=end;
     });
-    const center = svgEl('text',{x:110,y:115,'text-anchor':'middle',class:'nx-chart-center'}); center.textContent=String(total); svg.append(center);
     const legend = node('ul','nx-pattern-legend');
-    slices.forEach(([label,count],index) => { const item=node('li'); const swatch=node('span','nx-pattern-swatch'); swatch.style.background=palette[index]; item.append(swatch,node('span','',label),node('strong','',`${Math.round(100*count/total)}%`)); legend.append(item); });
+    slices.slice(0,6).forEach(([label,count],index) => { const item=node('li'); const swatch=node('span','nx-pattern-swatch'); swatch.style.background=palette[index%palette.length]; item.append(swatch,node('span','',label),node('strong','',`${Math.round(100*count/total)}%`)); legend.append(item); });
+    if(slices.length>6) legend.append(node('li','nx-pattern-legend-more',`+ ${slices.length-6} more topics — all colored in the wheel`));
     wrap.append(svg,legend); target.append(wrap);
   }
 
@@ -405,6 +409,11 @@
     const paper=event.detail; if (!paper?.questions) return;
     if (!papers.some(item=>item.id===paper.id)) papers.push(paper);
     persist(); renderPapers(); await analyze();
+  });
+  window.addEventListener('nexora:vault-item-renamed',event => {
+    const {id,name}=event.detail || {}; const paper=papers.find(item=>item.id===id);
+    if(!paper || !name) return;
+    paper.filename=name; persist(); renderPapers();
   });
   window.addEventListener('nexora:restore-report',async event => {
     const report=event.detail; if (!Array.isArray(report?.papers)) return;

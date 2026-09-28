@@ -18,17 +18,19 @@ test('avatar customizer is available from the dashboard and AI assistant', async
   assert.match(avatar, /Companion nickname/)
   assert.match(avatar, /\/api\/avatar\/nickname/)
   assert.match(avatar, /id="nx-companion-chat"/)
-  assert.match(avatar, /\/api\/assistant\/chat/)
+  assert.match(avatar, /\/api\/rag\/chat/)
+  assert.match(avatar, /nexora:open-rag-citation/)
 })
 
-test('avatar preferences stay local and only call the nickname moderation endpoint', async () => {
+test('avatar preferences stay local while chat uses the session RAG endpoint', async () => {
   const avatar = await load('avatar.js')
 
   assert.match(avatar, /nexora-avatar-config/)
   assert.match(avatar, /nexora-avatar-onboarded/)
   assert.match(avatar, /nexora-avatar-nickname/)
   assert.match(avatar, /localStorage\.setItem/)
-  assert.doesNotMatch(avatar, /\/api\/rag/)
+  assert.match(avatar, /NexoraRag/)
+  assert.match(avatar, /nexora-rag-chat-/)
 })
 
 test('first-time avatar setup is required before chat', async () => {

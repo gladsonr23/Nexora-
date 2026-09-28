@@ -55,10 +55,19 @@
   }
 
   const get = id => transact('readonly', store => store.get(id));
+  async function rename(id, name) {
+    const record=await get(id);
+    if (!record) throw new Error('This Vault file no longer exists.');
+    record.name=String(name || '').trim();
+    record.renamedAt=new Date().toISOString();
+    await transact('readwrite', store => store.put(record));
+    window.dispatchEvent(new Event('nexora:vault-updated'));
+    return {...record,blob:undefined};
+  }
   async function remove(id) {
     await transact('readwrite', store => store.delete(id));
     window.dispatchEvent(new Event('nexora:vault-updated'));
   }
 
-  window.NexoraVaultFileStore = {putMany, list, get, remove};
+  window.NexoraVaultFileStore = {putMany, list, get, rename, remove};
 })();

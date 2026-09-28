@@ -10,6 +10,7 @@ import { analyzeTopics } from './pattern-topics.js';
 import { extractQuestionsWithAi } from './pattern-ai-extract.js';
 import { moderateNickname } from './nickname-moderation.js';
 import { chatStudyAssistant } from './study-chat.js';
+import { answerFromSession, reconcileSessionMaterials, removeRagSession, renameSessionMaterial, sessionStatus, upsertSessionMaterial, validateSessionId } from './rag.js';
 
 try { process.loadEnvFile(fileURLToPath(new URL('./.env', import.meta.url))); } catch (_) {}
 
@@ -126,6 +127,64 @@ async function assistantChat(request,response) {
   } catch (error) { json(response,502,{error:error.message || 'The study assistant is unavailable.'}); }
 }
 
+async function indexRagMaterial(request,response) {
+  try {
+    const bytes=await limitedBody(request,2_000_000);
+    const input=JSON.parse(bytes.toString('utf8'));
+    json(response,200,upsertSessionMaterial(input.sessionId,input.material));
+  } catch (error) { json(response,400,{error:error.message || 'Could not index this session material.'}); }
+}
+
+async function indexRagFile(request,response,url) {
+  const sessionId=url.searchParams.get('sessionId');
+  const materialId=String(url.searchParams.get('materialId') || '').slice(0,120);
+  const filename=String(url.searchParams.get('name') || 'Session file').replace(/[\r\n]/g,' ').slice(0,160);
+  try {
+    validateSessionId(sessionId);
+    if(!materialId) throw new Error('The Vault material ID is missing.');
+    const pdf=/\.pdf$/i.test(filename); const textFile=/\.txt$/i.test(filename);
+    if(!pdf && !textFile) return json(response,415,{error:'Session RAG currently supports PDF and TXT originals.'});
+    const bytes=await limitedBody(request,12_000_000);
+    if(!bytes.length) throw new Error('The selected file is empty.');
+    if(pdf && bytes.subarray(0,5).toString()!=='%PDF-') throw new Error('This file is not a valid PDF.');
+    const nvidiaKey=process.env.NVIDIA_API_KEY;
+    const extracted=pdf ? await extractPdfWithOcr(bytes,{nvidiaKey,llamaKey:process.env.LLAMA_OCR_API_KEY || nvidiaKey}) : [{number:1,text:bytes.toString('utf8'),source:'text'}];
+    const pages=extracted.map(page=>({page:page.number,text:page.text})).filter(page=>String(page.text || '').trim());
+    if(!pages.length) throw new Error('No readable text was found in this file.');
+    json(response,200,upsertSessionMaterial(sessionId,{id:materialId,name:filename,type:'file',pages}));
+  } catch (error) { json(response,422,{error:error.message || 'Could not index this Vault file.'}); }
+}
+
+async function ragChat(request,response) {
+  try {
+    const bytes=await limitedBody(request,80_000);
+    const input=JSON.parse(bytes.toString('utf8'));
+    const result=await answerFromSession(input,{geminiKey:process.env.GEMINI_API_KEY,groqKey:process.env.GROQ_API_KEY});
+    json(response,200,result);
+  } catch (error) { json(response,400,{error:error.message || 'The session assistant could not answer.'}); }
+}
+
+async function renameRagMaterial(request,response) {
+  try {
+    const bytes=await limitedBody(request,4_000); const input=JSON.parse(bytes.toString('utf8'));
+    json(response,200,{renamed:renameSessionMaterial(input.sessionId,input.materialId,input.name)});
+  } catch (error) { json(response,400,{error:error.message || 'Could not rename this RAG source.'}); }
+}
+
+async function reconcileRagSession(request,response) {
+  try {
+    const bytes=await limitedBody(request,50_000); const input=JSON.parse(bytes.toString('utf8'));
+    json(response,200,reconcileSessionMaterials(input.sessionId,input.activeMaterialIds));
+  } catch (error) { json(response,400,{error:error.message || 'Could not reconcile this RAG session.'}); }
+}
+
+async function closeRagSession(request,response) {
+  try {
+    const bytes=await limitedBody(request,2_000); const input=JSON.parse(bytes.toString('utf8'));
+    json(response,200,{removed:removeRagSession(input.sessionId)});
+  } catch (error) { json(response,400,{error:error.message || 'Could not close the RAG session.'}); }
+}
+
 http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${host}:${port}`);
   if (url.pathname === '/api/summarize' && request.method === 'POST') return summarize(request, response);
@@ -134,6 +193,16 @@ http.createServer(async (request, response) => {
   if (url.pathname === '/api/pattern/topics' && request.method === 'POST') return topicImportance(request,response);
   if (url.pathname === '/api/avatar/nickname' && request.method === 'POST') return verifyNickname(request,response);
   if (url.pathname === '/api/assistant/chat' && request.method === 'POST') return assistantChat(request,response);
+  if (url.pathname === '/api/rag/index' && request.method === 'POST') return indexRagMaterial(request,response);
+  if (url.pathname === '/api/rag/index-file' && request.method === 'POST') return indexRagFile(request,response,url);
+  if (url.pathname === '/api/rag/chat' && request.method === 'POST') return ragChat(request,response);
+  if (url.pathname === '/api/rag/rename' && request.method === 'POST') return renameRagMaterial(request,response);
+  if (url.pathname === '/api/rag/reconcile' && request.method === 'POST') return reconcileRagSession(request,response);
+  if (url.pathname === '/api/rag/close' && request.method === 'POST') return closeRagSession(request,response);
+  if (url.pathname === '/api/rag/status' && request.method === 'GET') {
+    try { return json(response,200,sessionStatus(url.searchParams.get('sessionId'))); }
+    catch (error) { return json(response,400,{error:error.message}); }
+  }
   if (request.method !== 'GET') return json(response, 405, {error:'Method not allowed.'});
   const pathname = url.pathname === '/' ? '/index.html' : url.pathname;
   const safe = path.resolve(dist, `.${pathname}`);

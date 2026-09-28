@@ -26,6 +26,10 @@ test('pattern reports and question banks integrate with the Vault', async () => 
   assert.match(app, /id="nx-vault-file-input"[^>]*multiple/)
   assert.match(app, /id="nx-vault-upload"/)
   assert.match(pattern, /NexoraVaultFileStore/)
+  assert.match(app, /Rename/)
+  assert.match(app, /id="nx-rename-dialog"/)
+  assert.doesNotMatch(app, /window\.prompt/)
+  assert.match(index, /vault-files\.js/)
 })
 
 test('pattern detector offers upload and selection from Vault', async () => {
@@ -42,4 +46,13 @@ test('pattern working papers are session-scoped and uploads accumulate', async (
   assert.match(pattern, /sessionStorage\.setItem\('nexora-pattern-papers'/)
   assert.match(pattern, /pendingFiles/)
   assert.match(pattern, /sortPapersByYear/)
+})
+
+test('topic share uses the complete colored wheel without a dominant other-topics slice',async () => {
+  const [app,pattern,pdf]=await Promise.all([load('app.js'),load('pattern.js'),load('pdf.js')])
+  assert.match(app,/Every detected topic is shown as a colored wheel segment/)
+  assert.match(pattern,/const slices = ranked/)
+  assert.doesNotMatch(pattern,/Other topics/)
+  assert.match(pdf,/All \$\{slices\.length\} topics are colored in the wheel/)
+  assert.doesNotMatch(pdf,/Other topics/)
 })

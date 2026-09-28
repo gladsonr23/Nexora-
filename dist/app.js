@@ -94,17 +94,17 @@ document.body.innerHTML = `
         <section id="nx-vault-notes" class="nx-module-view" aria-labelledby="nx-vault-title" hidden><p class="nx-eyebrow">Study workspace</p><h1 id="nx-vault-title">Vault</h1><p class="nx-module-description">Keep original course files, generated study notes, extracted question banks, and analysis reports in this browser.</p><form class="nx-vault-uploader" id="nx-vault-upload-form"><div><p class="nx-kicker">Add material</p><h2>Upload files to Vault</h2><p>Store PDFs, text files, syllabi, assignments, and lecture slides for later use.</p></div><label class="nx-file-picker" for="nx-vault-file-input"><span>Choose files</span><input id="nx-vault-file-input" type="file" accept=".pdf,.txt,.doc,.docx,.ppt,.pptx,application/pdf,text/plain" multiple required></label><button class="nx-primary-button" id="nx-vault-upload" type="submit">Save to Vault ${icon('upload')}</button><p class="nx-pattern-progress" id="nx-vault-upload-status" role="status" hidden></p></form><div class="nx-vault-list" id="nx-vault-list"></div></section>
         <section id="nx-pattern" class="nx-pattern" aria-labelledby="nx-pattern-title" hidden><p class="nx-eyebrow">Focus & insights / Prof Pattern Detector</p><h1 id="nx-pattern-title">See what your papers keep asking.</h1><p class="nx-module-description">Upload past question papers to spot repeated questions and marks weightage. These are historical counts, not predictions of the next exam.</p>
           <div class="nx-pattern-intro"><form id="nx-pattern-form" class="nx-pattern-form"><div class="nx-section-head"><div><p class="nx-kicker">Question bank</p><h2>Add papers</h2></div><span class="nx-step-mark">01 / Choose source</span></div><div class="nx-pattern-source-actions"><label class="nx-secondary-button nx-pattern-upload-label" for="nx-pattern-file">${icon('upload')} Upload files</label><button class="nx-secondary-button" id="nx-pattern-vault-open" type="button">${icon('vault')} Get from Vault</button></div><input class="nx-pattern-file-input" id="nx-pattern-file" type="file" accept=".pdf,.txt,application/pdf,text/plain" multiple><div class="nx-pattern-selected-files" id="nx-pattern-selected-files" hidden></div><div class="nx-pattern-vault-picker" id="nx-pattern-vault-picker" hidden><p class="nx-kicker">Files in Vault</p><div id="nx-pattern-vault-files"></div><button class="nx-primary-button" id="nx-pattern-vault-add" type="button">Add selected from Vault ${icon('arrow')}</button></div><label for="nx-pattern-year">Fallback exam year <span class="nx-optional">optional</span></label><input id="nx-pattern-year" type="text" maxlength="20" placeholder="Used only when a filename has no year"><p class="nx-form-help">Select files together or add them in several batches. Years such as 2026 and 2025 are read from each filename automatically. Scans use Tesseract and NVIDIA OCR, then Gemini and Groq cross-check the extracted questions.</p><p class="nx-pattern-progress" id="nx-pattern-progress" role="status" hidden></p><p class="nx-form-error" id="nx-pattern-error" role="alert" hidden></p><button class="nx-primary-button" id="nx-pattern-add" type="submit">Analyze selected files ${icon('arrow')}</button></form><div class="nx-pattern-sources"><p class="nx-kicker">This session</p><h2>Included papers</h2><div id="nx-pattern-papers"></div></div></div>
-          <div id="nx-pattern-results" class="nx-pattern-results" hidden><div class="nx-pattern-results-head"><div><p class="nx-kicker">Historical pattern</p><h2>Question-bank analysis</h2></div><p>Historical evidence supports revision priorities; it cannot predict the next exam.</p></div><div class="nx-pattern-stats" id="nx-pattern-stats"></div><div class="nx-pattern-charts"><section class="nx-pattern-card" aria-labelledby="nx-pattern-repeat-title"><h3 id="nx-pattern-repeat-title">Most repeated questions</h3><p>Number of distinct papers containing the question</p><div id="nx-pattern-repeat-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-topic-title"><h3 id="nx-pattern-topic-title">Topics by marks</h3><p>Based on extracted marks only. Edit topic names in the question list.</p><div id="nx-pattern-topic-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-trend-title"><h3 id="nx-pattern-trend-title">Repeated questions over time</h3><p>Share of questions in each year that match another paper.</p><div id="nx-pattern-trend-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-share-title"><h3 id="nx-pattern-share-title">Topic share</h3><p>Share of all detected question occurrences. Top topics shown.</p><div id="nx-pattern-share-chart"></div></section></div><section class="nx-pattern-question-section" aria-labelledby="nx-pattern-questions-title"><div class="nx-pattern-results-head"><div><p class="nx-kicker">Question detail</p><h2 id="nx-pattern-questions-title">All question groups</h2></div><label class="nx-pattern-filter" for="nx-pattern-sort">Explore <select id="nx-pattern-sort"><option value="frequency">Most repeated</option><option value="least-frequency">Least repeated</option><option value="marks">Highest marks</option><option value="least-marks">Lowest marks</option><option value="important">Most important topics</option><option value="least-important">Least important topics</option></select></label></div><div class="nx-pattern-ai-row"><button class="nx-secondary-button" id="nx-pattern-ai" type="button">Label topics with Gemini + Groq</button><p id="nx-pattern-ai-status" role="status">Importance uses observed repetitions and marks; AI helps label topics.</p></div><div id="nx-pattern-questions"></div></section></div>
+          <div id="nx-pattern-results" class="nx-pattern-results" hidden><div class="nx-pattern-results-head"><div><p class="nx-kicker">Historical pattern</p><h2>Question-bank analysis</h2></div><p>Historical evidence supports revision priorities; it cannot predict the next exam.</p></div><div class="nx-pattern-stats" id="nx-pattern-stats"></div><div class="nx-pattern-charts"><section class="nx-pattern-card" aria-labelledby="nx-pattern-repeat-title"><h3 id="nx-pattern-repeat-title">Most repeated questions</h3><p>Number of distinct papers containing the question</p><div id="nx-pattern-repeat-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-topic-title"><h3 id="nx-pattern-topic-title">Topics by marks</h3><p>Based on extracted marks only. Edit topic names in the question list.</p><div id="nx-pattern-topic-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-trend-title"><h3 id="nx-pattern-trend-title">Repeated questions over time</h3><p>Share of questions in each year that match another paper.</p><div id="nx-pattern-trend-chart"></div></section><section class="nx-pattern-card" aria-labelledby="nx-pattern-share-title"><h3 id="nx-pattern-share-title">Topic share</h3><p>Every detected topic is shown as a colored wheel segment.</p><div id="nx-pattern-share-chart"></div></section></div><section class="nx-pattern-question-section" aria-labelledby="nx-pattern-questions-title"><div class="nx-pattern-results-head"><div><p class="nx-kicker">Question detail</p><h2 id="nx-pattern-questions-title">All question groups</h2></div><label class="nx-pattern-filter" for="nx-pattern-sort">Explore <select id="nx-pattern-sort"><option value="frequency">Most repeated</option><option value="least-frequency">Least repeated</option><option value="marks">Highest marks</option><option value="least-marks">Lowest marks</option><option value="important">Most important topics</option><option value="least-important">Least important topics</option></select></label></div><div class="nx-pattern-ai-row"><button class="nx-secondary-button" id="nx-pattern-ai" type="button">Label topics with Gemini + Groq</button><p id="nx-pattern-ai-status" role="status">Importance uses observed repetitions and marks; AI helps label topics.</p></div><div id="nx-pattern-questions"></div></section></div>
         </section>
         <section id="nx-assistant" class="nx-assistant" aria-labelledby="nx-assistant-title" hidden>
           <p class="nx-eyebrow">Focus & insights / AI Study Assistant</p>
-          <div class="nx-assistant-heading"><div><h1 id="nx-assistant-title">Ask your study companion.</h1><p class="nx-module-description">Get clear explanations from general academic knowledge. Vault-grounded answers and page citations will arrive with the RAG stage.</p></div><span class="nx-status-pill">General study chat</span></div>
-          <section class="nx-assistant-chat-shell" aria-label="Study assistant chat"><header><div class="nx-assistant-avatar" id="nx-assistant-avatar-preview" aria-hidden="true"></div><div><p class="nx-kicker">Your companion</p><h2 id="nx-assistant-avatar-title">Study companion</h2><p id="nx-assistant-avatar-copy">Ready to help with your questions.</p></div><button class="nx-secondary-button" id="nx-assistant-customize" type="button">Customize avatar</button></header><div class="nx-chat-messages nx-chat-messages-page" id="nx-page-chat-messages" aria-live="polite"></div><div class="nx-chat-suggestions" id="nx-page-chat-suggestions"></div><form class="nx-chat-form nx-chat-form-page" id="nx-page-chat-form"><label class="nx-sr-only" for="nx-page-chat-input">Ask a study question</label><textarea id="nx-page-chat-input" rows="2" maxlength="3000" placeholder="Ask a concept, request an example, or plan a revision topic…" required></textarea><button class="nx-primary-button" type="submit">Send</button></form><p class="nx-chat-disclaimer">AI can make mistakes. Verify important academic details with your course material.</p></section>
+          <div class="nx-assistant-heading"><div><h1 id="nx-assistant-title">Ask your study companion.</h1><p class="nx-module-description">Answers are retrieved only from files used in this browser session, with clickable source and page citations.</p></div><span class="nx-status-pill">Session RAG</span></div>
+          <section class="nx-assistant-chat-shell" aria-label="Study assistant chat"><header><div class="nx-assistant-avatar" id="nx-assistant-avatar-preview" aria-hidden="true"></div><div><p class="nx-kicker">Your companion</p><h2 id="nx-assistant-avatar-title">Study companion</h2><p id="nx-assistant-avatar-copy">Ready to answer from this session.</p></div><button class="nx-secondary-button" id="nx-assistant-customize" type="button">Customize avatar</button></header><div class="nx-rag-session-bar"><div><strong id="nx-rag-status">Checking this session…</strong><span id="nx-rag-materials">Only current-session files are searchable.</span></div><button class="nx-secondary-button" id="nx-rag-sync" type="button">Refresh session files</button></div><div class="nx-chat-messages nx-chat-messages-page" id="nx-page-chat-messages" aria-live="polite"></div><div class="nx-chat-suggestions" id="nx-page-chat-suggestions"></div><form class="nx-chat-form nx-chat-form-page" id="nx-page-chat-form"><label class="nx-sr-only" for="nx-page-chat-input">Ask a question about this session</label><textarea id="nx-page-chat-input" rows="2" maxlength="3000" placeholder="Ask something from this session’s notes or PDFs…" required></textarea><button class="nx-primary-button" type="submit">Send</button></form><p class="nx-chat-disclaimer">Nexora answers only from indexed session materials. Verify important details using the citations.</p></section>
         </section>
         <section id="nx-settings" class="nx-module-view" aria-labelledby="nx-settings-title" hidden><p class="nx-eyebrow">Workspace preferences</p><h1 id="nx-settings-title">Settings</h1><p class="nx-module-description">Make this study space yours.</p><div class="nx-module-placeholder nx-settings-card"><span class="nx-placeholder-rule"></span><h2>Your profile</h2><p>Your name appears in the greeting and sidebar. It is saved only in this browser.</p><div class="nx-settings-row"><span><small>Display name</small><strong id="nx-settings-name">Student</strong></span><button class="nx-secondary-button" id="nx-edit-name" type="button">Change name</button></div></div></section>
       </main>
     </div>
-  </div><dialog class="nx-name-dialog" id="nx-name-dialog" aria-labelledby="nx-name-title" aria-describedby="nx-name-description"><form id="nx-name-form" novalidate><span class="nx-placeholder-rule"></span><p class="nx-kicker">Nexora workspace</p><h2 id="nx-name-title">Welcome to Nexora</h2><p id="nx-name-description">What should we call you? Your name will appear on your dashboard and stay in this browser.</p><label for="nx-name-input">Your name</label><input id="nx-name-input" name="display-name" type="text" autocomplete="name" maxlength="40" aria-describedby="nx-name-error" required><p class="nx-field-error" id="nx-name-error" role="alert" hidden>Please enter your name.</p><div class="nx-dialog-actions"><button class="nx-secondary-button" id="nx-name-cancel" type="button" hidden>Cancel</button><button class="nx-primary-button" id="nx-name-submit" type="submit">Continue to dashboard</button></div></form></dialog><div class="nx-toast" id="nx-toast" role="status" aria-live="polite" hidden></div>`;
+  </div><dialog class="nx-name-dialog" id="nx-name-dialog" aria-labelledby="nx-name-title" aria-describedby="nx-name-description"><form id="nx-name-form" novalidate><span class="nx-placeholder-rule"></span><p class="nx-kicker">Nexora workspace</p><h2 id="nx-name-title">Welcome to Nexora</h2><p id="nx-name-description">What should we call you? Your name will appear on your dashboard and stay in this browser.</p><label for="nx-name-input">Your name</label><input id="nx-name-input" name="display-name" type="text" autocomplete="name" maxlength="40" aria-describedby="nx-name-error" required><p class="nx-field-error" id="nx-name-error" role="alert" hidden>Please enter your name.</p><div class="nx-dialog-actions"><button class="nx-secondary-button" id="nx-name-cancel" type="button" hidden>Cancel</button><button class="nx-primary-button" id="nx-name-submit" type="submit">Continue to dashboard</button></div></form></dialog><dialog class="nx-name-dialog" id="nx-rename-dialog" aria-labelledby="nx-rename-title"><form id="nx-rename-form" novalidate><span class="nx-placeholder-rule"></span><p class="nx-kicker">Vault</p><h2 id="nx-rename-title">Rename material</h2><p>Give this source a short, recognizable name for conversations with your study companion.</p><label for="nx-rename-input">Material name</label><input id="nx-rename-input" type="text" maxlength="120" required><p class="nx-field-error" id="nx-rename-error" role="alert" hidden>Enter a name before saving.</p><div class="nx-dialog-actions"><button class="nx-secondary-button" id="nx-rename-cancel" type="button">Cancel</button><button class="nx-primary-button" type="submit">Save name</button></div></form></dialog><div class="nx-toast" id="nx-toast" role="status" aria-live="polite" hidden></div>`;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -381,9 +381,9 @@ function formatFileSize(bytes) {
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
-function openVaultFile(file) {
+function openVaultFile(file, page = null) {
   const url=URL.createObjectURL(file.blob);
-  const viewer=window.open(url,'_blank');
+  const viewer=window.open(page ? `${url}#page=${Number(page) || 1}` : url,'_blank');
   if (!viewer) toast('Allow pop-ups to open this Vault file.');
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
@@ -406,6 +406,46 @@ function openStudyGuidePdf(note) {
 function downloadStudyGuidePdf(note) {
   try { studyGuidePdf(note).save(window.NexoraPdf.filename(note)); }
   catch (error) { toast(error.message || 'Could not download this PDF.'); }
+}
+function requestedVaultName(currentName, preserveExtension=false) {
+  return new Promise(resolve => {
+    const dialog=$('#nx-rename-dialog'); const form=$('#nx-rename-form'); const input=$('#nx-rename-input'); const error=$('#nx-rename-error');
+    input.value=currentName; error.hidden=true;
+    let settled=false;
+    const finish=value=>{if(settled)return;settled=true;form.removeEventListener('submit',submit);$('#nx-rename-cancel').removeEventListener('click',cancel);dialog.removeEventListener('close',closed);if(dialog.open)dialog.close();resolve(value);};
+    const cancel=()=>finish(null); const closed=()=>finish(null);
+    const submit=event=>{
+      event.preventDefault();
+      let name=String(input.value).replace(/[\\/:*?"<>|\r\n]/g,' ').replace(/\s+/g,' ').trim().slice(0,120);
+      if(!name){error.hidden=false;input.focus();return;}
+      if(preserveExtension){const extension=String(currentName).match(/\.[a-z0-9]{1,8}$/i)?.[0]||'';if(extension&&!name.toLowerCase().endsWith(extension.toLowerCase()))name+=extension;}
+      finish(name);
+    };
+    form.addEventListener('submit',submit); $('#nx-rename-cancel').addEventListener('click',cancel); dialog.addEventListener('close',closed);
+    dialog.showModal(); input.focus(); input.select();
+  });
+}
+async function updateRagSourceName(materialId,name) {
+  try { await fetch('/api/rag/rename',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:window.NexoraSession?.id,materialId,name})}); }
+  catch (_) {}
+}
+async function renameStoredVaultItem(key,item,field,preserveExtension=false) {
+  const name=await requestedVaultName(item[field],preserveExtension); if(!name || name===item[field]) return;
+  const values=getVaultItems(key); const updated=values.map(value=>value.id===item.id?{...value,[field]:name,renamedAt:new Date().toISOString()}:value);
+  try {
+    localStorage.setItem(key,JSON.stringify(updated));
+    if(key==='nexora-vault-papers') {
+      const originals=await window.NexoraVaultFileStore.list();
+      const related=originals.find(file=>file.sessionId===item.sessionId && file.name===item[field]);
+      if(related) { await window.NexoraVaultFileStore.rename(related.id,name); await updateRagSourceName(related.id,name); }
+      const working=JSON.parse(sessionStorage.getItem('nexora-pattern-papers') || '[]');
+      if(Array.isArray(working)) sessionStorage.setItem('nexora-pattern-papers',JSON.stringify(working.map(value=>value.id===item.id?{...value,[field]:name}:value)));
+    }
+    await updateRagSourceName(item.id,name);
+    window.dispatchEvent(new CustomEvent('nexora:vault-item-renamed',{detail:{id:item.id,name,field}}));
+    window.dispatchEvent(new Event('nexora:vault-updated'));
+    toast(`Renamed to ${name}.`);
+  } catch (_) { toast('This item could not be renamed in browser storage.'); }
 }
 async function renderVault() {
   const list = $('#nx-vault-list');
@@ -434,7 +474,7 @@ async function renderVault() {
     const card=node('article','nx-vault-item');
     const canAnalyze=/\.(pdf|txt)$/i.test(file.name);
     card.append(node('span','nx-vault-item-type','ORIGINAL FILE'),node('strong','',file.name),node('small','',`${formatFileSize(file.size)} · ${new Date(file.createdAt).toLocaleDateString('en-IN')}`));
-    const fileActions=[actionButton('Open',()=>openVaultFile(file),true),actionButton('Download',()=>downloadVaultFile(file))];
+    const fileActions=[actionButton('Open',()=>openVaultFile(file),true),actionButton('Download',()=>downloadVaultFile(file)),actionButton('Rename',async()=>{const name=await requestedVaultName(file.name,true);if(!name||name===file.name)return;try{await window.NexoraVaultFileStore.rename(file.id,name);await updateRagSourceName(file.id,name);toast(`Renamed to ${name}.`);}catch(error){toast(error.message||'This file could not be renamed.');}})];
     if (canAnalyze) fileActions.push(actionButton('Use in detector',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-vault-files',{detail:[file.id]})));}));
     fileActions.push(actionButton('Remove',async()=>{await window.NexoraVaultFileStore.remove(file.id);toast(`${file.name} removed from Vault.`);}));
     card.append(actions(...fileActions)); list.append(card);
@@ -442,19 +482,19 @@ async function renderVault() {
   const renderReportCard = report => {
     const card=node('article','nx-vault-item');
     card.append(node('span','nx-vault-item-type','PDF ANALYSIS REPORT'),node('strong','',report.title || 'Prof Pattern Analysis'),node('small','',`${report.analysis?.paperCount || report.papers?.length || 0} papers · ${new Date(report.createdAt).toLocaleDateString('en-IN')}`));
-    card.append(actions(actionButton('Open PDF',()=>window.dispatchEvent(new CustomEvent('nexora:open-pattern-pdf',{detail:report})),true),actionButton('Load analysis',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-report',{detail:report})));})));
+    card.append(actions(actionButton('Open PDF',()=>window.dispatchEvent(new CustomEvent('nexora:open-pattern-pdf',{detail:report})),true),actionButton('Load analysis',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-report',{detail:report})));}),actionButton('Rename',()=>renameStoredVaultItem('nexora-vault-pattern-reports',report,'title'))));
     list.append(card);
   };
   const renderPaperCard = paper => {
     const card=node('article','nx-vault-item');
     card.append(node('span','nx-vault-item-type','EXTRACTED QUESTION BANK'),node('strong','',paper.filename),node('small','',`${paper.questions?.length || 0} questions · ${paper.year || 'No year'} · ${paper.processing || 'Text extraction'}`));
-    card.append(actions(actionButton('Add to detector',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-paper',{detail:paper})));},true)));
+    card.append(actions(actionButton('Add to detector',()=>{location.hash='#pattern';requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-paper',{detail:paper})));},true),actionButton('Rename',()=>renameStoredVaultItem('nexora-vault-papers',paper,'filename',true))));
     list.append(card);
   };
   const renderNoteCard = note => {
     const card = node('article', 'nx-vault-item');
     card.append(node('span', 'nx-vault-item-type', 'PDF STUDY GUIDE'),node('strong', '', note.title),node('small', '', `${note.sections.length} sections · ${new Date(note.createdAt).toLocaleDateString('en-IN')}`));
-    card.append(actions(actionButton('Open PDF',()=>openStudyGuidePdf(note),true),actionButton('Download',()=>downloadStudyGuidePdf(note))));
+    card.append(actions(actionButton('Open PDF',()=>openStudyGuidePdf(note),true),actionButton('Download',()=>downloadStudyGuidePdf(note)),actionButton('Rename',()=>renameStoredVaultItem('nexora-vault-notes',note,'title'))));
     list.append(card);
   };
   const sessionId=window.NexoraSession?.id;
@@ -485,6 +525,25 @@ async function renderVault() {
   notes.forEach(renderNoteCard);
 }
 window.addEventListener('nexora:vault-updated',() => { if(location.hash==='#vault') renderVault(); });
+window.addEventListener('nexora:open-rag-citation',async event => {
+  const citation=event.detail;
+  if(!citation?.materialId) return;
+  try {
+    if(citation.type==='file') {
+      const file=await window.NexoraVaultFileStore.get(citation.materialId);
+      if(file) return openVaultFile(file,citation.page);
+    }
+    const note=getVaultNotes().find(item=>item.id===citation.materialId);
+    if(note) return openStudyGuidePdf(note);
+    const paper=getVaultItems('nexora-vault-papers').find(item=>item.id===citation.materialId);
+    if(paper) {
+      location.hash='#pattern';
+      requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('nexora:restore-paper',{detail:paper})));
+      return;
+    }
+    toast('This source is no longer available in the current browser Vault.');
+  } catch (_) { toast('Could not open this citation.'); }
+});
 $('#nx-vault-upload-form').addEventListener('submit',async event => {
   event.preventDefault();
   const input=$('#nx-vault-file-input'); const status=$('#nx-vault-upload-status'); const button=$('#nx-vault-upload'); const files=[...(input.files || [])];

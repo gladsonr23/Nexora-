@@ -374,13 +374,14 @@ a.nx-note-timestamp:hover { text-decoration: underline; }
 .nx-chart-area { fill: var(--nx-accent); opacity: .17; }
 .nx-chart-line { fill: none; stroke: var(--nx-accent); stroke-width: 3; stroke-linejoin: round; }
 .nx-chart-point { fill: var(--nx-surface); stroke: var(--nx-accent); stroke-width: 3; }
-.nx-chart-point:focus-visible, .nx-pattern-share circle:focus-visible { outline: 3px solid var(--nx-ring); }
+.nx-chart-point:focus-visible, .nx-pattern-share circle:focus-visible, .nx-pattern-share path:focus-visible { outline: 3px solid var(--nx-ring); outline-offset: 2px; }
 .nx-chart-center { fill: var(--nx-text); font: 700 27px system-ui,sans-serif; }
 .nx-pattern-share { display: grid; grid-template-columns: minmax(160px,220px) 1fr; gap: 14px; align-items: center; }
 .nx-pattern-legend { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
 .nx-pattern-legend li { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .nx-pattern-legend li span:nth-child(2) { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .nx-pattern-swatch { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.nx-pattern-legend-more { padding-top: 4px; color: var(--nx-muted); font-size: 10px; line-height: 1.45; }
 @media (max-width: 650px) { .nx-pattern-ocr-columns, .nx-pattern-share { grid-template-columns: 1fr; } .nx-pattern-share svg { max-width: 220px; margin: auto; } .nx-pattern-ai-row { align-items: start; flex-direction: column; } }
 @media (max-width: 780px) { .nx-vault-uploader { grid-template-columns: 1fr; } .nx-vault-uploader .nx-pattern-progress { grid-column: auto; } }
 @media (max-width: 1050px) { .nx-summarizer-layout, .nx-summarizer.nx-has-notes .nx-summarizer-layout { grid-template-columns: 1fr; } }
@@ -541,6 +542,11 @@ body.nx-avatar-drawer-open { overflow: hidden; }
 .nx-assistant-chat-shell .nx-assistant-avatar { width: 66px; margin: 0; }
 .nx-assistant-chat-shell h2 { margin: 1px 0 3px; font-family: Georgia,serif; font-size: 25px; }
 .nx-assistant-chat-shell header p:last-child { margin: 0; color: var(--nx-muted); font-size: 12px; }
+.nx-rag-session-bar { display: flex; padding: 13px 22px; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--nx-line); background: color-mix(in srgb,var(--nx-accent) 5%,var(--nx-bg)); }
+.nx-rag-session-bar > div { display: grid; min-width: 0; gap: 3px; }
+.nx-rag-session-bar strong { font-size: 12px; }
+.nx-rag-session-bar span { color: var(--nx-muted); font-size: 10px; }
+.nx-rag-session-bar .nx-secondary-button { min-height: 36px; padding: 8px 12px; flex: none; font-size: 10px; }
 .nx-companion-chat { position: fixed; z-index: 41; top: 0; right: 0; display: flex; width: min(430px,100vw); height: 100dvh; flex-direction: column; border-left: 1px solid var(--nx-line); background: var(--nx-bg); color: var(--nx-text); box-shadow: -20px 0 55px rgba(0,0,0,.2); transform: translateX(105%); transition: transform .22s cubic-bezier(.2,.8,.2,1); }
 .nx-companion-chat.nx-open { transform: translateX(0); }
 .nx-companion-chat > header { display: grid; grid-template-columns: 52px minmax(0,1fr) 38px; gap: 12px; padding: 18px; align-items: center; border-bottom: 1px solid var(--nx-line); }
@@ -557,6 +563,9 @@ body.nx-avatar-drawer-open { overflow: hidden; }
 .nx-chat-message-user { margin-left: auto; }
 .nx-chat-message-user span { text-align: right; }
 .nx-chat-message-user p { border-color: transparent; border-radius: 14px 4px 14px 14px; background: var(--nx-accent); color: var(--nx-accent-foreground); }
+.nx-chat-citations { display: flex; margin-top: 7px; padding-left: 3px; flex-wrap: wrap; gap: 6px; }
+.nx-chat-citation { max-width: 100%; padding: 6px 9px; overflow: hidden; border: 1px solid var(--nx-line); border-radius: 999px; background: var(--nx-surface); color: var(--nx-accent); font: inherit; font-size: 10px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.nx-chat-citation:hover, .nx-chat-citation:focus-visible { border-color: var(--nx-accent); background: color-mix(in srgb,var(--nx-accent) 7%,var(--nx-surface)); }
 .nx-chat-pending { opacity: .72; }
 .nx-chat-suggestions { display: flex; padding: 4px 18px 12px; overflow-x: auto; gap: 7px; scrollbar-width: none; }
 .nx-chat-suggestions::-webkit-scrollbar { display: none; }
@@ -573,6 +582,8 @@ body.nx-avatar-drawer-open { overflow: hidden; }
   .nx-assistant-chat-shell > header { grid-template-columns: 52px minmax(0,1fr); padding: 16px; }
   .nx-assistant-chat-shell .nx-assistant-avatar { width: 50px; }
   .nx-assistant-chat-shell #nx-assistant-customize { grid-column: 1/-1; width: 100%; }
+  .nx-rag-session-bar { padding: 13px 16px; align-items: stretch; flex-direction: column; gap: 10px; }
+  .nx-rag-session-bar .nx-secondary-button { width: 100%; }
   .nx-chat-messages { padding: 16px; }
   .nx-chat-message { width: 92%; }
   .nx-chat-form { padding: 10px 12px; }

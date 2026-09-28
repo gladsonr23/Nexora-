@@ -196,10 +196,12 @@
       points.forEach(point=>{doc.setFillColor(...teal);doc.circle(point.x,point.y,1.3,'F');text(point.year,point.x-6,base+5,12,5.8,muted);});
     }
     function pieChart(x,yPos,w,h,items) {
-      const slices=items.slice(0,4).map(item=>({label:item.topic,value:item.count}));const other=items.slice(4).reduce((sum,item)=>sum+item.count,0);if(other)slices.push({label:'Other topics',value:other});
-      const total=slices.reduce((sum,item)=>sum+item.value,0)||1,cx=x+25,cy=yPos+44,r=14,palette=[teal,yellow,[59,157,140],[147,109,178],[139,154,161]];let angle=-Math.PI/2;
-      slices.forEach((slice,index)=>{const end=angle+Math.PI*2*slice.value/total;doc.setFillColor(...palette[index]);const steps=Math.max(2,Math.ceil((end-angle)/(Math.PI/24)));for(let step=0;step<steps;step++){const a=angle+(end-angle)*step/steps,b=angle+(end-angle)*(step+1)/steps;doc.triangle(cx,cy,cx+Math.cos(a)*r,cy+Math.sin(a)*r,cx+Math.cos(b)*r,cy+Math.sin(b)*r,'F');}angle=end;});
-      slices.forEach((slice,index)=>{const yy=yPos+28+index*8;const percent=`${Math.round(100*slice.value/total)}%`;doc.setFillColor(...palette[index]);doc.rect(x+47,yy-2.5,3,3,'F');doc.setFont('helvetica','normal');doc.setFontSize(6.1);doc.setTextColor(...ink);doc.text(fitLine(slice.label,w-73,6.1),x+53,yy);doc.setFont('helvetica','bold');doc.setTextColor(...muted);doc.text(percent,x+w-5,yy,{align:'right'});});
+      const slices=items.map(item=>({label:item.topic,value:item.count}));
+      const palette=[teal,yellow,[47,160,130],[137,99,190],[229,104,92],[58,125,205],[197,75,143],[120,169,54],[230,130,50],[78,91,178],[205,76,93],[32,164,187]];
+      const total=slices.reduce((sum,item)=>sum+item.value,0)||1,cx=x+25,cy=yPos+44,r=16;let angle=-Math.PI/2;
+      slices.forEach((slice,index)=>{const end=angle+Math.PI*2*slice.value/total;doc.setFillColor(...palette[index%palette.length]);const steps=Math.max(2,Math.ceil((end-angle)/(Math.PI/36)));for(let step=0;step<steps;step++){const a=angle+(end-angle)*step/steps,b=angle+(end-angle)*(step+1)/steps;doc.triangle(cx,cy,cx+Math.cos(a)*r,cy+Math.sin(a)*r,cx+Math.cos(b)*r,cy+Math.sin(b)*r,'F');}angle=end;});
+      slices.slice(0,4).forEach((slice,index)=>{const yy=yPos+28+index*8;const percent=`${Math.round(100*slice.value/total)}%`;doc.setFillColor(...palette[index%palette.length]);doc.rect(x+47,yy-2.5,3,3,'F');doc.setFont('helvetica','normal');doc.setFontSize(6.1);doc.setTextColor(...ink);doc.text(fitLine(slice.label,w-73,6.1),x+53,yy);doc.setFont('helvetica','bold');doc.setTextColor(...muted);doc.text(percent,x+w-5,yy,{align:'right'});});
+      text(`All ${slices.length} topics are colored in the wheel`,x+47,yPos+63,w-52,5.8,muted);
     }
 
     header();doc.setFillColor(...yellow);doc.rect(margin,y,15,1.3,'F');y+=10;
