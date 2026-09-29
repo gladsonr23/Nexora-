@@ -9,7 +9,8 @@ test('pattern detector exposes multi-file upload without manual OCR review', asy
 
   assert.match(app, /id="nx-pattern-file"[^>]*multiple/)
   assert.doesNotMatch(app, /id="nx-pattern-review"/)
-  assert.match(app, /Tesseract and NVIDIA OCR, then Gemini and Groq cross-check/)
+  assert.match(app, /Scanned pages are read and cross-checked automatically/)
+  assert.doesNotMatch(app, /Gemini|Groq|NVIDIA|Tesseract|AI Study Assistant/)
 })
 
 test('pattern reports and question banks integrate with the Vault', async () => {

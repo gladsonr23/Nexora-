@@ -20,7 +20,7 @@ async function gemini(messages,key,fetchImpl) {
     const data=await response.json(); const text=data?.candidates?.[0]?.content?.parts?.map(part=>part.text || '').join('').trim();
     if (text) return {reply:text.slice(0,8000),provider:'Gemini',model};
   }
-  throw new Error('Gemini chat unavailable.');
+  throw new Error('The study assistant is temporarily unavailable.');
 }
 
 async function groq(messages,key,fetchImpl) {
@@ -32,7 +32,7 @@ async function groq(messages,key,fetchImpl) {
     const data=await response.json(); const text=String(data?.choices?.[0]?.message?.content || '').trim();
     if (text) return {reply:text.slice(0,8000),provider:'Groq',model};
   }
-  throw new Error('Groq chat unavailable.');
+  throw new Error('The study assistant is temporarily unavailable.');
 }
 
 export async function chatStudyAssistant(input,{geminiKey,groqKey,fetchImpl=fetch}={}) {
@@ -41,5 +41,5 @@ export async function chatStudyAssistant(input,{geminiKey,groqKey,fetchImpl=fetc
     try { return await gemini(messages,geminiKey,fetchImpl); } catch (_) {}
   }
   if (groqKey) return groq(messages,groqKey,fetchImpl);
-  throw new Error('Add a Gemini or Groq API key to server/.env, then restart Nexora.');
+  throw new Error('The study assistant is not configured. Ask the project administrator to check the server settings.');
 }

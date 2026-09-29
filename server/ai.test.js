@@ -33,14 +33,14 @@ test('does not send captions to Groq when Gemini succeeds', async () => {
 test('does not bypass a Gemini request rejection', async () => {
   const calls = [];
   const fetchImpl = async (url) => { calls.push(url); return reply(400, {error:{message:'invalid'}}); };
-  await assert.rejects(generateStudyNotes('Synthetic captions', {geminiKey:'test-gemini',groqKey:'test-groq',fetchImpl}), /Gemini rejected/);
+  await assert.rejects(generateStudyNotes('Synthetic captions', {geminiKey:'test-gemini',groqKey:'test-groq',fetchImpl}), /not configured correctly/);
   assert.equal(calls.length, 1);
 });
 
 test('does not send captions to Groq without a configured Gemini primary', async () => {
   let calls = 0;
   const fetchImpl = async () => { calls++; return reply(200, {choices:[{message:{content:JSON.stringify(note)}}]}); };
-  await assert.rejects(generateStudyNotes('Synthetic captions', {groqKey:'test-groq',fetchImpl}), /Gemini API key/);
+  await assert.rejects(generateStudyNotes('Synthetic captions', {groqKey:'test-groq',fetchImpl}), /note generator is not configured/);
   assert.equal(calls, 0);
 });
 

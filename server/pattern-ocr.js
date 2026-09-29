@@ -48,13 +48,13 @@ export function reconcileOcr(tesseract, nvidia, llama = null) {
 }
 
 export async function nvidiaOcr(png, key, fetchImpl = fetch) {
-  if (!key || key === 'PASTE_YOUR_KEY_HERE') throw new Error('NVIDIA OCR key is not configured.');
+  if (!key || key === 'PASTE_YOUR_KEY_HERE') throw new Error('A scan-reading service is not configured.');
   const response = await fetchImpl(NVIDIA_OCR_URL, {
     method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json'},
     body: JSON.stringify({input:[{type:'image_url',url:`data:image/png;base64,${png.toString('base64')}`}],merge_levels:['paragraph']}),
     signal: AbortSignal.timeout(45_000)
   });
-  if (!response.ok) throw new Error(`NVIDIA OCR returned HTTP ${response.status}.`);
+  if (!response.ok) throw new Error(`A scan-reading service returned HTTP ${response.status}.`);
   const data = await response.json();
   const detections = data?.data?.[0]?.text_detections || [];
   const valid = detections.filter(item => item?.text_prediction?.text);
@@ -62,7 +62,7 @@ export async function nvidiaOcr(png, key, fetchImpl = fetch) {
 }
 
 export async function llamaVisionOcr(png,key,fetchImpl=fetch) {
-  if (!key || key === 'PASTE_YOUR_KEY_HERE') throw new Error('Llama OCR key is not configured.');
+  if (!key || key === 'PASTE_YOUR_KEY_HERE') throw new Error('A secondary scan-reading service is not configured.');
   const response=await fetchImpl(NVIDIA_CHAT_URL,{
     method:'POST',
     headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json',Accept:'application/json'},
@@ -76,10 +76,10 @@ export async function llamaVisionOcr(png,key,fetchImpl=fetch) {
     }),
     signal:AbortSignal.timeout(45_000)
   });
-  if (!response.ok) throw new Error(`Llama OCR returned HTTP ${response.status}.`);
+  if (!response.ok) throw new Error(`A secondary scan-reading service returned HTTP ${response.status}.`);
   const data=await response.json();
   const text=String(data?.choices?.[0]?.message?.content || '').replace(/^```(?:text)?\s*|\s*```$/g,'').trim();
-  if (!text) throw new Error('Llama OCR returned no transcription.');
+  if (!text) throw new Error('No text was returned from the scanned page.');
   return {text,confidence:.8};
 }
 
@@ -113,7 +113,7 @@ export async function extractPdfWithOcr(bytes, {nvidiaKey,llamaKey,fetchImpl = f
       const remote = remoteResult.status === 'fulfilled' ? remoteResult.value : null;
       const llama = llamaResult.status === 'fulfilled' ? llamaResult.value : null;
       const comparison = reconcileOcr(local,remote,llama);
-      pages.push({number,...comparison,source:'ocr',warnings:[localResult.status === 'rejected' ? 'Local Tesseract could not read this page.' : null,remoteResult.status === 'rejected' ? `NVIDIA OCR unavailable: ${remoteResult.reason?.message || 'request failed'}` : null,llamaResult.status === 'rejected' ? `Llama OCR unavailable: ${llamaResult.reason?.message || 'request failed'}` : null].filter(Boolean)});
+      pages.push({number,...comparison,source:'ocr',warnings:[localResult.status === 'rejected' ? 'One scan-reading pass could not read this page.' : null,remoteResult.status === 'rejected' ? 'A secondary scan-reading pass was unavailable.' : null,llamaResult.status === 'rejected' ? 'An additional scan-reading pass was unavailable.' : null].filter(Boolean)});
       page.cleanup();
     }
   } finally {

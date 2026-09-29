@@ -1,5 +1,9 @@
 /server/.env
+/.vercel
 node_modules/
 .npm-cache/
 output/
 tmp/
+
+.vercel
+.env*

@@ -145,7 +145,7 @@ function parseJson(value) {
   const parsed=JSON.parse(text);
   const answer=normalizeText(parsed?.answer,8_000);
   const sourceIds=Array.isArray(parsed?.sourceIds)?parsed.sourceIds.map(String):[];
-  if (!answer) throw new Error('The AI returned an empty answer.');
+  if (!answer) throw new Error('The study assistant returned an empty answer.');
   return {answer,sourceIds};
 }
 
@@ -190,7 +190,7 @@ export async function answerFromSession({sessionId,question,history=[]},{geminiK
   let generated=null;
   if(geminiKey) { try { generated=await geminiAnswer(messages,context,geminiKey,fetchImpl); } catch (_) {} }
   if(!generated && groqKey) { try { generated=await groqAnswer(messages,context,groqKey,fetchImpl); } catch (_) {} }
-  if(!generated) generated={answer:`The AI providers are unavailable, but these are the most relevant passages from this session:\n\n${hits.slice(0,2).map(hit=>`• ${hit.text.slice(0,420)}`).join('\n\n')}`,sourceIds:['S1',...(hits[1]?['S2']:[])],provider:'Local retrieval'};
+  if(!generated) generated={answer:`A full response is unavailable, but these are the most relevant passages from this session:\n\n${hits.slice(0,2).map(hit=>`• ${hit.text.slice(0,420)}`).join('\n\n')}`,sourceIds:['S1',...(hits[1]?['S2']:[])],provider:'Local retrieval'};
   const chosen=[...new Set(generated.sourceIds)].map(sourceId=>({sourceId,hit:sourceMap.get(sourceId)})).filter(item=>item.hit);
   const seenCitations=new Set();
   const citations=(chosen.length?chosen:hits.slice(0,2).map((hit,index)=>({sourceId:`S${index+1}`,hit}))).map(({sourceId,hit})=>({sourceId,materialId:hit.materialId,filename:hit.name,type:hit.type,page:hit.page,section:hit.section})).filter(citation=>{const location=citation.page?`page:${citation.page}`:`section:${citation.section || ''}`;const key=`${citation.materialId}|${location}`;if(seenCitations.has(key))return false;seenCitations.add(key);return true;});

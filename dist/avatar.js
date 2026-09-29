@@ -91,9 +91,9 @@
     <div class="nx-avatar-backdrop" id="nx-avatar-backdrop" hidden></div>
     <aside class="nx-avatar-drawer" id="nx-avatar-drawer" role="dialog" aria-modal="false" aria-labelledby="nx-avatar-drawer-title" data-required="false" hidden>
       <header><div><p class="nx-kicker">Nexora companion</p><h2 id="nx-avatar-drawer-title">Make it yours</h2></div><button class="nx-avatar-close" id="nx-avatar-close" type="button" aria-label="Close avatar customizer">×</button></header>
-      <div class="nx-avatar-onboarding" id="nx-avatar-onboarding"><strong>Welcome to your study companion.</strong><p>Customize a character now, or keep the simple default profile. You can change it anytime from AI Study Assistant.</p></div>
+      <div class="nx-avatar-onboarding" id="nx-avatar-onboarding"><strong>Welcome to your study companion.</strong><p>Customize a character now, or keep the simple default profile. You can change it anytime from Study Assistant.</p></div>
       <div class="nx-avatar-preview" id="nx-avatar-preview" aria-live="polite"></div>
-      <label class="nx-avatar-nickname" for="nx-avatar-nickname"><span>Companion nickname <small>optional</small></span><input id="nx-avatar-nickname" type="text" maxlength="24" autocomplete="off" placeholder="e.g. Nova"><small id="nx-avatar-nickname-status">Checked by Gemini and Groq when you save.</small></label>
+      <label class="nx-avatar-nickname" for="nx-avatar-nickname"><span>Companion nickname <small>optional</small></span><input id="nx-avatar-nickname" type="text" maxlength="24" autocomplete="off" placeholder="e.g. Nova"><small id="nx-avatar-nickname-status">Checked for inappropriate language when you save.</small></label>
       <button class="nx-avatar-randomize" id="nx-avatar-randomize" type="button"><span aria-hidden="true">↻</span> Randomize avatar</button>
       <form class="nx-avatar-controls" id="nx-avatar-controls">
         <fieldset><legend>Face & hair</legend><div class="nx-avatar-field-grid">${selectMarkup('skin','Skin tone')}${selectMarkup('hair','Hair style')}${selectMarkup('hairColor','Hair color')}${selectMarkup('eyes','Eyes')}${selectMarkup('mouth','Expression')}${selectMarkup('glasses','Glasses')}</div></fieldset>
@@ -102,7 +102,7 @@
       <footer><button class="nx-secondary-button" id="nx-avatar-default" type="button">Use default</button><button class="nx-primary-button nx-avatar-save" id="nx-avatar-save" type="button">Save avatar</button></footer>
     </aside>
     <aside class="nx-companion-chat" id="nx-companion-chat" role="dialog" aria-modal="false" aria-labelledby="nx-chat-title" hidden>
-      <header><div class="nx-chat-avatar" id="nx-chat-avatar-art" aria-hidden="true"></div><div><p class="nx-kicker">Study companion</p><h2 id="nx-chat-title">Companion</h2><small id="nx-drawer-rag-status">Session RAG</small></div><button class="nx-avatar-close" id="nx-chat-close" type="button" aria-label="Close study chat">×</button></header>
+      <header><div class="nx-chat-avatar" id="nx-chat-avatar-art" aria-hidden="true"></div><div><p class="nx-kicker">Study companion</p><h2 id="nx-chat-title">Companion</h2><small id="nx-drawer-rag-status">Session sources</small></div><button class="nx-avatar-close" id="nx-chat-close" type="button" aria-label="Close study chat">×</button></header>
       <div class="nx-chat-tools"><span>Answers only from this session</span><button type="button" id="nx-chat-customize">Customize avatar</button></div>
       <div class="nx-chat-messages" id="nx-drawer-chat-messages" aria-live="polite"></div>
       <div class="nx-chat-suggestions" id="nx-drawer-chat-suggestions"></div>
@@ -235,12 +235,12 @@
     draftNickname = savedNickname;
     renderDraft();
     const nicknameStatus = $('#nx-avatar-nickname-status');
-    nicknameStatus.textContent = 'Checked by Gemini and Groq when you save.';
+    nicknameStatus.textContent = 'Checked for inappropriate language when you save.';
     nicknameStatus.className = '';
     drawer.dataset.required = onboarding ? 'true' : 'false';
     const onboardingPanel = $('#nx-avatar-onboarding');
     onboardingPanel.hidden = !onboarding;
-    if (onboarding) onboardingPanel.innerHTML = '<strong>Complete your avatar setup to continue.</strong><p>Choose a look or randomize one, then save it. You can change it later from AI Study Assistant.</p>';
+    if (onboarding) onboardingPanel.innerHTML = '<strong>Complete your avatar setup to continue.</strong><p>Choose a look or randomize one, then save it. You can change it later from Study Assistant.</p>';
     $('#nx-avatar-close').hidden = onboarding;
     $('#nx-avatar-default').hidden = onboarding;
     drawer.hidden = false;
@@ -308,7 +308,7 @@
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.answer) throw new Error(result.error || 'The session assistant is unavailable right now.');
-      chatMessages.push({role:'assistant',content:String(result.answer),citations:Array.isArray(result.citations)?result.citations:[],provider:result.provider || ''});
+      chatMessages.push({role:'assistant',content:String(result.answer),citations:Array.isArray(result.citations)?result.citations:[]});
     } catch (error) {
       chatMessages.push({role:'assistant',content:error.message || 'I could not search this session just now. Please try again.',citations:[]});
     } finally {
@@ -373,7 +373,7 @@
           status.className = 'nx-rejected';
           return;
         }
-        status.textContent = result.crossChecked ? 'Approved by Gemini and Groq.' : `Approved by ${result.providers?.join(' and ') || 'AI moderation'}.`;
+        status.textContent = 'Nickname approved.';
         status.className = 'nx-approved';
       } catch (error) {
         status.textContent = error.message || 'Nickname verification is unavailable. Try again.';

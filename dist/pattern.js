@@ -176,9 +176,9 @@
       heading.append(node('span', 'nx-pattern-rank', String(index + 1).padStart(2, '0')), node('h3', '', group.question));
       const badges = node('div', 'nx-pattern-badges');
       badges.append(node('span', '', `${group.paperCount}/${analysis.paperCount} papers`), node('span', '', `${group.count} occurrence${group.count === 1 ? '' : 's'}`), node('span', '', group.marksKnown ? `${group.totalMarks} total marks` : 'Marks not found'));
-      if (sort.value.includes('important')) badges.append(node('span', '', `Study priority ${priority(group)} · historical evidence${aiTopics.get(group.id)?.aiImportance ? ` + AI ${aiTopics.get(group.id).aiImportance}/5` : ''}`));
-      if (aiTopics.get(group.id)?.alternate) badges.append(node('span', '', `Groq suggested: ${aiTopics.get(group.id).alternate}`));
-      if (aiTopics.get(group.id)?.importanceDisagreement >= 2) badges.append(node('span', '', 'AI priority ratings differ — review manually'));
+      if (sort.value.includes('important')) badges.append(node('span', '', `Study priority ${priority(group)} · historical evidence${aiTopics.get(group.id)?.aiImportance ? ` + relevance ${aiTopics.get(group.id).aiImportance}/5` : ''}`));
+      if (aiTopics.get(group.id)?.alternate) badges.append(node('span', '', `Alternate topic label: ${aiTopics.get(group.id).alternate}`));
+      if (aiTopics.get(group.id)?.importanceDisagreement >= 2) badges.append(node('span', '', 'Priority signals differ — review manually'));
       const sources = node('p', 'nx-pattern-sources-line', group.occurrences.map(item => `${item.year || item.paper}${item.page ? ` · p.${item.page}` : ''}${item.marks ? ` · ${item.marks} marks` : ''}`).join('   •   '));
       const topicLabel = node('label', 'nx-pattern-topic-edit', 'Topic');
       const topicInput = node('input');
@@ -197,7 +197,7 @@
       });
       topicLabel.append(topicInput);
       card.append(heading, badges, sources, topicLabel);
-      if (sort.value.includes('important') && aiTopics.get(group.id)?.reasons?.length) card.append(node('p','nx-pattern-sources-line',`AI study rationale: ${aiTopics.get(group.id).reasons[0]}`));
+      if (sort.value.includes('important') && aiTopics.get(group.id)?.reasons?.length) card.append(node('p','nx-pattern-sources-line',`Study rationale: ${aiTopics.get(group.id).reasons[0]}`));
       target.append(card);
     });
   }
@@ -326,7 +326,7 @@
       }
       for (const [index,file] of files.entries()) {
         addButton.textContent=`Reading ${index+1} of ${files.length}…`;
-        progress.textContent=`Processing ${file.name} (${index+1}/${files.length}). Scanned papers can take a minute while OCR and both AI models cross-check them.`;
+        progress.textContent=`Processing ${file.name} (${index+1}/${files.length}). Scanned papers can take a minute while the extracted text is cross-checked.`;
         const inferredYear=file.name.match(/\b(20\d{2})\b/)?.[1] || '';
         const params = new URLSearchParams({name:file.name,year:yearInput.value.trim() || inferredYear});
         try {
@@ -381,17 +381,17 @@
   });
   async function loadAiTopics() {
     if (!analysis?.groups.length) return;
-    const button=$('#nx-pattern-ai'); const status=$('#nx-pattern-ai-status'); button.disabled=true; status.textContent='Gemini and Groq are labeling topics…';
+    const button=$('#nx-pattern-ai'); const status=$('#nx-pattern-ai-status'); button.disabled=true; status.textContent='Refining topic labels and priorities…';
     try {
       const topics=[]; const providers=new Set(); const warnings=[];
       for (let index=0;index<analysis.groups.length;index+=80) {
-        status.textContent=`Gemini and Groq are assessing topics ${index+1}–${Math.min(index+80,analysis.groups.length)}…`;
+        status.textContent=`Assessing topics ${index+1}–${Math.min(index+80,analysis.groups.length)}…`;
         const response=await fetch('/api/pattern/topics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({groups:analysis.groups.slice(index,index+80)})});
-        const data=await response.json(); if (!response.ok) throw new Error(data.error || 'AI topic labeling failed.');
+        const data=await response.json(); if (!response.ok) throw new Error('Topic refinement is unavailable right now.');
         topics.push(...data.topics); data.providers.forEach(provider => providers.add(provider)); warnings.push(...data.warnings);
       }
       aiTopics=new Map(topics.map(item => [item.id,item])); renderCharts();renderQuestions();
-      status.textContent=`Historical priority with ${[...providers].join(' + ') || 'no AI provider'} ratings. ${[...new Set(warnings)].join(' ')} Not an exam forecast.`;
+      status.textContent=`Topic priorities refined from the available evidence.${warnings.length ? ' Some optional checks were unavailable.' : ''} Not an exam forecast.`;
     } catch (problem) {status.textContent=problem.message;} finally {button.disabled=false;}
   }
   $('#nx-pattern-ai').addEventListener('click',loadAiTopics);

@@ -458,7 +458,7 @@ a.nx-note-timestamp:hover { text-decoration: underline; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
-/* AI companion avatar */
+/* Study companion avatar */
 .nx-assistant-heading { display: flex; align-items: start; justify-content: space-between; gap: 24px; }
 .nx-assistant-heading .nx-module-description { max-width: 760px; }
 .nx-assistant-layout { display: grid; grid-template-columns: minmax(280px,.7fr) minmax(420px,1.3fr); gap: 22px; margin-top: 34px; }
