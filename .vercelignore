@@ -2,3 +2,5 @@ server/.env
 .git
 .github
 **/*.test.js
+tmp/
+output/

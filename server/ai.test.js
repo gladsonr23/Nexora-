@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateStudyNotes } from './ai.js';
+import { generateStudyNotes, generateStudyNotesFromYouTube } from './ai.js';
 
 const note = {title:'Factory pattern',overview:'A creation pattern.',sections:[{timestamp:'00:20',heading:'How it works',points:['A factory creates an object.']}],takeaways:['Use it when creation varies.']};
 const reply = (status, body) => new Response(JSON.stringify(body), {status, headers:{'Content-Type':'application/json'}});
@@ -103,4 +103,19 @@ test('tries the next model after a rate limit', async () => {
   const result = await generateStudyNotes('Synthetic captions', {geminiKey:'test-gemini',groqKey:'test-groq',fetchImpl});
   assert.equal(result.model, 'gemini-3.7-flash');
   assert.equal(calls.length, 2);
+});
+
+test('uses a public YouTube URL when hosting blocks direct caption access', async () => {
+  let requestBody;
+  const fetchImpl = async (_url, options) => {
+    requestBody = JSON.parse(options.body);
+    return reply(200, {candidates:[{content:{parts:[{text:JSON.stringify({...note,sourceLanguageCode:'en'})}]}}]});
+  };
+  const result = await generateStudyNotesFromYouTube('https://www.youtube.com/watch?v=abcdefghijk', {geminiKey:'test-gemini',title:'Algorithms Lecture',fetchImpl});
+  assert.equal(requestBody.contents[0].parts[0].fileData.fileUri, 'https://www.youtube.com/watch?v=abcdefghijk');
+  assert.match(requestBody.contents[0].parts[1].text, /verified lecture title is: Algorithms Lecture/i);
+  assert.equal(requestBody.generationConfig.responseSchema.properties.sourceLanguageCode.type, 'string');
+  assert.equal(result.languageCode, 'en');
+  assert.equal(result.notes.title, note.title);
+  assert.equal('sourceLanguageCode' in result.notes, false);
 });

@@ -6,6 +6,13 @@ import {
   YoutubeTranscriptVideoUnavailableError
 } from 'youtube-transcript-plus';
 
+export class YoutubeAccessBlockedError extends Error {
+  constructor() {
+    super('YouTube blocked caption access from the hosting server.');
+    this.name = 'YoutubeAccessBlockedError';
+  }
+}
+
 export function parseYouTubeUrl(value) {
   let url;
   try { url = new URL(String(value || '').trim()); } catch (_) { throw new Error('Paste a valid YouTube video link.'); }
@@ -17,6 +24,16 @@ export function parseYouTubeUrl(value) {
   const id = host === 'youtu.be' ? parts[0] : parts[0] === 'watch' ? url.searchParams.get('v') : ['shorts', 'live', 'embed'].includes(parts[0]) ? parts[1] : null;
   if (!/^[A-Za-z0-9_-]{11}$/.test(id || '')) throw new Error('The link must point to one YouTube video.');
   return {videoId: id, sourceUrl: `https://www.youtube.com/watch?v=${id}`};
+}
+
+export async function fetchYouTubeTitle(value, {fetchImpl = fetch} = {}) {
+  const {sourceUrl} = parseYouTubeUrl(value);
+  const endpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(sourceUrl)}&format=json`;
+  const response = await fetchImpl(endpoint, {signal:AbortSignal.timeout(15_000)});
+  if (!response.ok) throw new Error('Could not read the lecture title from YouTube.');
+  const title = String((await response.json())?.title || '').trim();
+  if (!title) throw new Error('Could not read the lecture title from YouTube.');
+  return title.slice(0, 200);
 }
 
 export function selectCaptionLanguage(languages) {
@@ -48,13 +65,60 @@ function isNetworkFailure(error) {
   return isNetworkFailure(error.cause);
 }
 
+function fetchFromYoutube(params) {
+  const {url, lang, userAgent, method = 'GET', signal} = params;
+  return fetch(url, {
+    method,
+    headers:{
+      'User-Agent':userAgent,
+      ...(lang ? {'Accept-Language':lang} : {}),
+      ...params.headers
+    },
+    ...(params.body && method === 'POST' ? {body:params.body} : {}),
+    signal
+  });
+}
+
+function playerSummary(body) {
+  try {
+    const player = JSON.parse(body);
+    const tracklist = player.captions?.playerCaptionsTracklistRenderer || player.playerCaptionsTracklistRenderer;
+    return {
+      playability:player.playabilityStatus?.status || '',
+      reason:player.playabilityStatus?.reason || '',
+      captionTracks:tracklist?.captionTracks?.length || 0
+    };
+  } catch (_) {
+    return {playability:'', reason:'', captionTracks:0};
+  }
+}
+
+async function youtubePlayerFetch(params) {
+  const response = await fetchFromYoutube(params);
+  const result = playerSummary(await response.clone().text());
+  if (!result.captionTracks && /confirm you.re not a bot/i.test(result.reason)) {
+    console.warn('[youtube:captions] hosting provider blocked by YouTube bot protection');
+    throw new YoutubeAccessBlockedError();
+  }
+  return response;
+}
+
+const youtubeFetchConfig = {
+  playerFetch:youtubePlayerFetch
+};
+
 export async function fetchYouTubeLecture(value, {listLanguagesImpl = listLanguages, fetchTranscriptImpl = fetchTranscript} = {}) {
   const {videoId, sourceUrl} = parseYouTubeUrl(value);
   try {
-    const languages = await listLanguagesImpl(videoId);
+    const languages = await listLanguagesImpl(videoId, youtubeFetchConfig);
     const selected = selectCaptionLanguage(languages);
     if (!selected) throw new Error('This video has no accessible captions. Try a lecture with captions enabled.');
-    const result = await fetchTranscriptImpl(videoId, {lang:selected.languageCode, videoDetails:true, retries:2});
+    const result = await fetchTranscriptImpl(videoId, {
+      ...youtubeFetchConfig,
+      lang:selected.languageCode,
+      videoDetails:true,
+      retries:2
+    });
     const captions = formatCaptions(result.segments);
     if (captions.length < 300) throw new Error('This video has too little caption text to create reliable study notes.');
     if (captions.length > 240_000) throw new Error('This lecture is too long for one set of notes. Try a shorter video.');
@@ -64,6 +128,14 @@ export async function fetchYouTubeLecture(value, {listLanguagesImpl = listLangua
     return {videoId, sourceUrl, title:title.slice(0, 200), captions, languageCode,
       languageWarning:!/^en(?:-|$)/i.test(languageCode)};
   } catch (error) {
+    console.error('[youtube:captions] retrieval failed', {
+      videoId,
+      errorName:String(error?.name || 'Error'),
+      errorMessage:String(error?.message || 'Unknown caption error'),
+      causeName:String(error?.cause?.name || ''),
+      causeMessage:String(error?.cause?.message || '')
+    });
+    if (error instanceof YoutubeAccessBlockedError) throw error;
     if (error instanceof YoutubeTranscriptDisabledError || error instanceof YoutubeTranscriptNotAvailableError) {
       throw new Error('This video has no accessible captions. Try a lecture with captions enabled.');
     }
