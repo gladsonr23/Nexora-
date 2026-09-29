@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCanvas } from '@napi-rs/canvas';
 import { createWorker } from 'tesseract.js';
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import {getDocument} from './pdfjs.js';
 
 const require = createRequire(import.meta.url);
 const { langPath } = require('@tesseract.js-data/eng');

@@ -1,4 +1,4 @@
-import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
+import {getDocument} from './pdfjs.js';
 
 const STOP_WORDS = new Set('a an and are as at be between by can compare define describe difference differentiate discuss do does explain for from give how in into is it its list mention of on or outline the their to what which with write you your short note notes advantages disadvantages following'.split(' '));
 
