@@ -67,7 +67,7 @@ document.body.innerHTML = `
       <header class="nx-topbar"><div class="nx-topbar-start"><button class="nx-icon-button nx-menu" id="nx-menu" type="button" aria-label="Open navigation" aria-controls="nx-sidebar" aria-expanded="false">${icon('menu')}</button><a class="nx-compact-brand" href="#overview" aria-label="Nexora overview">${bookLogo}</a><span class="nx-breadcrumb"><span class="nx-breadcrumb-root">Workspace</span><span class="nx-breadcrumb-divider">/</span><strong id="nx-breadcrumb-page">Overview</strong></span></div><div class="nx-topbar-actions"><button class="nx-icon-button" id="nx-notifications" type="button" aria-label="Notifications">${icon('bell')}</button><button class="nx-primary-button" id="nx-upload" type="button">${icon('upload')}<span>Upload material</span></button></div></header>
       <main id="nx-main" tabindex="-1">
         <section id="nx-overview" class="nx-overview" aria-labelledby="nx-page-title">
-          <div class="nx-intro"><div><p class="nx-eyebrow" id="nx-date"></p><h1 id="nx-page-title">Your study desk.</h1><p>Pick up where you left off and make time for what matters today.</p></div><span class="nx-sample-badge">Sample workspace</span></div>
+          <div class="nx-intro"><div class="nx-greeting"><p class="nx-eyebrow" id="nx-date"></p><h1 id="nx-page-title">Good morning, Student</h1><p>Pick up where you left off and make time for what matters today.</p></div><span class="nx-sample-badge">Sample workspace</span></div>
           <div class="nx-priority-grid">
             <section class="nx-plan" aria-labelledby="nx-plan-title"><div class="nx-section-head"><div><p class="nx-kicker">Plan for today</p><h2 id="nx-plan-title">Three things to move forward</h2></div><a class="nx-text-link" href="#schedule">Open planner ${icon('arrow')}</a></div>
               <div class="nx-plan-list">
@@ -101,62 +101,48 @@ document.body.innerHTML = `
           <div class="nx-assistant-heading"><div><h1 id="nx-assistant-title">Ask your study companion.</h1><p class="nx-module-description">Answers are retrieved only from files used in this browser session, with clickable source and page citations.</p></div><span class="nx-status-pill">Session sources</span></div>
           <section class="nx-assistant-chat-shell" aria-label="Study assistant chat"><header><div class="nx-assistant-avatar" id="nx-assistant-avatar-preview" aria-hidden="true"></div><div><p class="nx-kicker">Your companion</p><h2 id="nx-assistant-avatar-title">Study companion</h2><p id="nx-assistant-avatar-copy">Ready to answer from this session.</p></div><button class="nx-secondary-button" id="nx-assistant-customize" type="button">Customize avatar</button></header><div class="nx-rag-session-bar"><div><strong id="nx-rag-status">Checking this session…</strong><span id="nx-rag-materials">Only current-session files are searchable.</span></div><button class="nx-secondary-button" id="nx-rag-sync" type="button">Refresh session files</button></div><div class="nx-chat-messages nx-chat-messages-page" id="nx-page-chat-messages" aria-live="polite"></div><div class="nx-chat-suggestions" id="nx-page-chat-suggestions"></div><form class="nx-chat-form nx-chat-form-page" id="nx-page-chat-form"><label class="nx-sr-only" for="nx-page-chat-input">Ask a question about this session</label><textarea id="nx-page-chat-input" rows="2" maxlength="3000" placeholder="Ask something from this session’s notes or PDFs…" required></textarea><button class="nx-primary-button" type="submit">Send</button></form><p class="nx-chat-disclaimer">Nexora answers only from indexed session materials. Verify important details using the citations.</p></section>
         </section>
-        <section id="nx-settings" class="nx-module-view" aria-labelledby="nx-settings-title" hidden><p class="nx-eyebrow">Workspace preferences</p><h1 id="nx-settings-title">Settings</h1><p class="nx-module-description">Make this study space yours.</p><div class="nx-module-placeholder nx-settings-card"><span class="nx-placeholder-rule"></span><h2>Your profile</h2><p>Your name appears in the greeting and sidebar. It is saved only in this browser.</p><div class="nx-settings-row"><span><small>Display name</small><strong id="nx-settings-name">Student</strong></span><button class="nx-secondary-button" id="nx-edit-name" type="button">Change name</button></div></div></section>
+        <section id="nx-settings" class="nx-module-view" aria-labelledby="nx-settings-title" hidden><p class="nx-eyebrow">Workspace preferences</p><h1 id="nx-settings-title">Settings</h1><p class="nx-module-description">Make this study space yours.</p><div class="nx-module-placeholder nx-settings-card"><span class="nx-placeholder-rule"></span><h2>Your account</h2><p id="nx-account-description">Set the name used across your workspace.</p><form class="nx-display-name-form" id="nx-display-name-form"><label for="nx-display-name-input">Display name</label><div class="nx-display-name-controls"><input id="nx-display-name-input" type="text" maxlength="40" autocomplete="nickname" required><button class="nx-primary-button" type="submit">Save name</button></div><p class="nx-settings-feedback" id="nx-display-name-feedback" role="status" hidden></p></form></div></section>
       </main>
     </div>
-  </div><dialog class="nx-name-dialog" id="nx-name-dialog" aria-labelledby="nx-name-title" aria-describedby="nx-name-description"><form id="nx-name-form" novalidate><span class="nx-placeholder-rule"></span><p class="nx-kicker">Nexora workspace</p><h2 id="nx-name-title">Welcome to Nexora</h2><p id="nx-name-description">What should we call you? Your name will appear on your dashboard and stay in this browser.</p><label for="nx-name-input">Your name</label><input id="nx-name-input" name="display-name" type="text" autocomplete="name" maxlength="40" aria-describedby="nx-name-error" required><p class="nx-field-error" id="nx-name-error" role="alert" hidden>Please enter your name.</p><div class="nx-dialog-actions"><button class="nx-secondary-button" id="nx-name-cancel" type="button" hidden>Cancel</button><button class="nx-primary-button" id="nx-name-submit" type="submit">Continue to dashboard</button></div></form></dialog><dialog class="nx-name-dialog" id="nx-rename-dialog" aria-labelledby="nx-rename-title"><form id="nx-rename-form" novalidate><span class="nx-placeholder-rule"></span><p class="nx-kicker">Vault</p><h2 id="nx-rename-title">Rename material</h2><p>Give this source a short, recognizable name for conversations with your study companion.</p><label for="nx-rename-input">Material name</label><input id="nx-rename-input" type="text" maxlength="120" required><p class="nx-field-error" id="nx-rename-error" role="alert" hidden>Enter a name before saving.</p><div class="nx-dialog-actions"><button class="nx-secondary-button" id="nx-rename-cancel" type="button">Cancel</button><button class="nx-primary-button" type="submit">Save name</button></div></form></dialog><div class="nx-toast" id="nx-toast" role="status" aria-live="polite" hidden></div>`;
+  </div><dialog class="nx-name-dialog" id="nx-rename-dialog" aria-labelledby="nx-rename-title"><form id="nx-rename-form" novalidate><span class="nx-placeholder-rule"></span><p class="nx-kicker">Vault</p><h2 id="nx-rename-title">Rename material</h2><p>Give this source a short, recognizable name for conversations with your study companion.</p><label for="nx-rename-input">Material name</label><input id="nx-rename-input" type="text" maxlength="120" required><p class="nx-field-error" id="nx-rename-error" role="alert" hidden>Enter a name before saving.</p><div class="nx-dialog-actions"><button class="nx-secondary-button" id="nx-rename-cancel" type="button">Cancel</button><button class="nx-primary-button" type="submit">Save name</button></div></form></dialog><div class="nx-toast" id="nx-toast" role="status" aria-live="polite" hidden></div>`;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const nameDialog = $('#nx-name-dialog');
-const nameInput = $('#nx-name-input');
-const normalizeName = (value) => value.replace(/\s+/g, ' ').trim();
-let displayName = '';
-try { displayName = normalizeName(localStorage.getItem('nexora-display-name') || '').slice(0, 40); } catch (_) {}
+const normalizeName = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+const clerkDisplayName = () => {
+  const user = window.Clerk?.user;
+  return normalizeName(user?.firstName || user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress || '') || 'Student';
+};
+let savedDisplayName = '';
+try { savedDisplayName = normalizeName(localStorage.getItem('nexora-display-name')); } catch (_) {}
+let displayName = savedDisplayName || clerkDisplayName();
 function renderName() {
-  $('#nx-page-title').textContent = displayName ? `Your study desk, ${displayName}.` : 'Your study desk.';
-  $('#nx-profile-name').textContent = displayName || 'Student';
-  $('#nx-settings-name').textContent = displayName || 'Student';
-  $('#nx-avatar').textContent = displayName ? Array.from(displayName)[0].toLocaleUpperCase() : '?';
+  const accountName = clerkDisplayName();
+  if (!savedDisplayName) displayName = accountName;
+  $('#nx-page-title').textContent = `Good ${getGreeting()}, ${displayName}`;
+  $('#nx-profile-name').textContent = displayName;
+  $('#nx-display-name-input').value = displayName === 'Student' && !savedDisplayName ? '' : displayName;
+  $('#nx-avatar').textContent = Array.from(displayName)[0].toLocaleUpperCase();
+  const signedIn = Boolean(window.Clerk?.user);
+  $('#nx-account-description').textContent = signedIn ? 'Choose how your name appears in Nexora. This only changes your workspace display name.' : 'Choose the name shown in your greeting and sidebar. It is saved in this browser.';
 }
-function openNameDialog(edit = false) {
-  nameDialog.dataset.mode = edit ? 'edit' : 'welcome';
-  $('#nx-name-title').textContent = edit ? 'Change your name' : 'Welcome to Nexora';
-  $('#nx-name-description').textContent = edit ? 'Update the name shown in your dashboard and sidebar.' : 'What should we call you? Your name will appear on your dashboard and stay in this browser.';
-  $('#nx-name-submit').textContent = edit ? 'Save name' : 'Continue to dashboard';
-  $('#nx-name-cancel').hidden = !edit;
-  $('#nx-name-error').hidden = true;
-  nameInput.removeAttribute('aria-invalid');
-  nameInput.value = edit ? displayName : '';
-  nameDialog.showModal();
-  nameInput.focus();
-}
-function validateName() {
-  const valid = Boolean(normalizeName(nameInput.value));
-  $('#nx-name-error').hidden = valid;
-  if (valid) nameInput.removeAttribute('aria-invalid'); else nameInput.setAttribute('aria-invalid', 'true');
-  return valid;
-}
-nameInput.addEventListener('blur', () => { if (nameInput.value) validateName(); });
-nameInput.addEventListener('input', () => { if (nameInput.getAttribute('aria-invalid') === 'true') validateName(); });
-nameDialog.addEventListener('cancel', (event) => { if (!displayName) event.preventDefault(); });
-$('#nx-name-cancel').addEventListener('click', () => nameDialog.close());
-$('#nx-name-form').addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (!validateName()) { nameInput.focus(); return; }
-  displayName = normalizeName(nameInput.value).slice(0, 40);
-  let saved = true;
-  try { localStorage.setItem('nexora-display-name', displayName); } catch (_) { saved = false; }
-  renderName();
-  nameDialog.close();
-  if (!saved) toast('Browser storage is unavailable. Your name will last for this visit only.');
-});
-$('#nx-edit-name').addEventListener('click', () => openNameDialog(true));
 renderName();
-if (!displayName) openNameDialog();
+window.Clerk?.addListener?.(() => renderName());
+$('#nx-display-name-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const input = $('#nx-display-name-input');
+  const name = normalizeName(input.value);
+  if (!name) { input.focus(); return; }
+  savedDisplayName = name;
+  try { localStorage.setItem('nexora-display-name', name); } catch (_) {}
+  renderName();
+  const feedback = $('#nx-display-name-feedback');
+  feedback.textContent = 'Name saved for this workspace.';
+  feedback.hidden = false;
+});
 function renderTheme() {
   const dark = document.documentElement.dataset.theme === 'dark';
-  document.querySelector('meta[name="theme-color"]').content = dark ? '#020608' : '#f5fafb';
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#262624' : '#faf9f5';
   $('#nx-theme-control').setAttribute('aria-pressed', String(dark));
   $('#nx-theme-label').textContent = dark ? 'Dark mode' : 'Light mode';
 }
@@ -176,6 +162,12 @@ $('#nx-theme-control').addEventListener('click', () => {
 renderTheme();
 const dateFormatter = new Intl.DateTimeFormat('en-IN', {weekday:'long', day:'numeric', month:'long'});
 $('#nx-date').textContent = dateFormatter.format(new Date());
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'morning';
+  if (hour < 17) return 'afternoon';
+  return 'evening';
+}
 function closeNav() {
   $('#nx-sidebar').classList.remove('nx-open');
   $('#nx-scrim').hidden = true;

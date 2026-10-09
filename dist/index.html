@@ -4,9 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Nexora — your academic workspace for notes, planning, revision, and focused study.">
-  <meta name="theme-color" content="#f5fafb">
+  <meta name="theme-color" content="#faf9f5">
   <title>Nexora — Overview</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
     const systemTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     let initialTheme = systemTheme;
@@ -15,7 +18,7 @@
       if (saved === 'light' || saved === 'dark') initialTheme = saved;
     } catch (_) {}
     document.documentElement.dataset.theme = initialTheme;
-    document.querySelector('meta[name="theme-color"]').content = initialTheme === 'dark' ? '#020608' : '#f5fafb';
+    document.querySelector('meta[name="theme-color"]').content = initialTheme === 'dark' ? '#262624' : '#faf9f5';
   </script>
   <link rel="stylesheet" href="./styles.css">
   <script src="./vendor/jspdf.umd.min.js" defer></script>
