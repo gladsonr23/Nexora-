@@ -101,7 +101,8 @@
       if (year !== renderedYear) { papersList.append(node('h3','nx-pattern-year-heading',year)); renderedYear=year; }
       const row = node('div', 'nx-pattern-paper');
       const info = node('div');
-      info.append(node('strong', '', paper.filename), node('small', '', `${paper.year || 'No year'} · ${paper.questions.length} questions · ${paper.pageCount || 1} ${paper.pageCount === 1 ? 'page' : 'pages'}`));
+      const markNote=paper.markReviewCount ? ` · ${paper.markReviewCount} unclear mark${paper.markReviewCount===1?'':'s'} left blank` : '';
+      info.append(node('strong', '', paper.filename), node('small', '', `${paper.year || 'No year'} · ${paper.questions.length} questions · ${paper.pageCount || 1} ${paper.pageCount === 1 ? 'page' : 'pages'}${markNote}`));
       const remove = node('button', 'nx-pattern-remove', 'Remove');
       remove.type = 'button';
       remove.setAttribute('aria-label', `Remove ${paper.filename}`);
@@ -426,6 +427,5 @@
     await processFiles(files);
   });
   window.addEventListener('nexora:open-pattern-pdf',event => { if(event.detail) openPatternPdf(event.detail); });
-  renderPapers();
-  analyze();
+  NexoraRegisterPage('pattern', page, () => { renderPapers(); analyze(); });
 })();

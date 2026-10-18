@@ -16,12 +16,13 @@ test('Vercel bundles the runtime files needed to read selectable and scanned PDF
   }
 });
 
-test('server PDF parsing eagerly registers the PDF.js worker', async () => {
+test('server PDF parsing explicitly registers the PDF.js worker export', async () => {
   const bridge = await readFile(new URL('./pdfjs.js', import.meta.url), 'utf8');
   const pattern = await readFile(new URL('./pattern.js', import.meta.url), 'utf8');
   const ocr = await readFile(new URL('./pattern-ocr.js', import.meta.url), 'utf8');
 
-  assert.match(bridge, /import ['"]pdfjs-dist\/legacy\/build\/pdf\.worker\.mjs['"]/);
+  assert.match(bridge, /import \* as pdfjsWorker from ['"]pdfjs-dist\/legacy\/build\/pdf\.worker\.mjs['"]/);
+  assert.match(bridge, /globalThis\.pdfjsWorker\s*=\s*pdfjsWorker/);
   assert.match(pattern, /from ['"]\.\/pdfjs\.js['"]/);
   assert.match(ocr, /from ['"]\.\/pdfjs\.js['"]/);
 });
