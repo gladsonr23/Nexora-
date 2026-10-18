@@ -30,7 +30,7 @@
     });
   }
 
-  async function putMany(files) {
+  async function putMany(files, metadata = {}) {
     const saved = [];
     for (const file of files) {
       const record = {
@@ -38,6 +38,8 @@
         name: file.name,
         type: file.type || 'application/octet-stream',
         size: file.size,
+        subject: String(metadata.subject || 'General').trim(),
+        category: String(metadata.category || 'Notes').trim(),
         createdAt: new Date().toISOString(),
         sessionId: window.NexoraSession?.id || null,
         blob: file
@@ -64,10 +66,20 @@
     window.dispatchEvent(new Event('nexora:vault-updated'));
     return {...record,blob:undefined};
   }
+  async function updateMetadata(id, metadata = {}) {
+    const record = await get(id);
+    if (!record) throw new Error('This Vault file no longer exists.');
+    record.subject = String(metadata.subject || 'General').trim();
+    record.category = String(metadata.category || 'Notes').trim();
+    record.updatedAt = new Date().toISOString();
+    await transact('readwrite', store => store.put(record));
+    window.dispatchEvent(new Event('nexora:vault-updated'));
+    return {...record, blob: undefined};
+  }
   async function remove(id) {
     await transact('readwrite', store => store.delete(id));
     window.dispatchEvent(new Event('nexora:vault-updated'));
   }
 
-  window.NexoraVaultFileStore = {putMany, list, get, rename, remove};
+  window.NexoraVaultFileStore = {putMany, list, get, rename, updateMetadata, remove};
 })();
