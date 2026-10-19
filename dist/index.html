@@ -30,7 +30,7 @@
   <link rel="stylesheet" href="./grainient.css?v=1">
   <link rel="stylesheet" href="./pattern.css?v=1">
   <script>
-    window.NEXORA_API_BASE = window.NEXORA_API_BASE || 'http://localhost:4000';
+    window.NEXORA_API_BASE = window.NEXORA_API_BASE || location.origin;
     window.NEXORA_AUTH_DISABLED = ['localhost', '127.0.0.1'].includes(location.hostname);
   </script>
   <!-- Clerk PUBLISHABLE key only (pk_test_… / pk_live_…). Never put a Clerk secret key or any Supabase key in this folder. -->

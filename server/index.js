@@ -44,6 +44,45 @@ async function limitedBody(request, limit) {
   return Buffer.concat(chunks);
 }
 
+async function largeJsonBody(request, limit = 17_000_000) {
+  const bytes = await limitedBody(request, limit);
+  return JSON.parse(bytes.toString('utf8'));
+}
+
+async function studyMaterialText(input) {
+  const file = input?.material;
+  const name = String(file?.filename || '').replace(/[\r\n]/g, ' ').trim().slice(0, 160);
+  const subject = String(file?.subject || 'General').trim().slice(0, 120);
+  const encoded = String(file?.fileBase64 || '');
+  if (!name.toLowerCase().endsWith('.pdf')) throw new Error('Choose a PDF from your Vault.');
+  if (!encoded || encoded.length > 16_000_000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(encoded)) throw new Error('This PDF is too large or could not be read. Choose a PDF smaller than 12 MB.');
+  const bytes = Buffer.from(encoded, 'base64');
+  if (bytes.length > 12_000_000) throw new Error('Choose a PDF smaller than 12 MB.');
+  if (bytes.subarray(0, 5).toString() !== '%PDF-') throw new Error('The selected Vault file is not a valid PDF.');
+  const pages = await extractPdfWithOcr(bytes, {nvidiaKey:process.env.NVIDIA_API_KEY,llamaKey:process.env.LLAMA_OCR_API_KEY || process.env.NVIDIA_API_KEY});
+  const text = pages.map(page => page.text || '').filter(Boolean).join('\n\n');
+  if (text.replace(/\s/g, '').length < 80) throw new Error('No usable text could be read from this PDF. Try a clearer copy.');
+  return {text, name, subject};
+}
+
+async function generateSchedule(request, response) {
+  try {
+    const input = await largeJsonBody(request);
+    const material = await studyMaterialText(input);
+    const plan = await createStudyPlan({...input, ...material}, {apiKey:process.env.GEMINI_API_KEY});
+    json(response, 200, plan);
+  } catch (error) { json(response, 422, {error:error.message || 'Could not generate the study plan.'}); }
+}
+
+async function generateQuiz(request, response) {
+  try {
+    const input = await largeJsonBody(request);
+    const material = await studyMaterialText(input);
+    const quiz = await createQuiz({...input, ...material}, {apiKey:process.env.GEMINI_API_KEY});
+    json(response, 200, quiz);
+  } catch (error) { json(response, 422, {error:error.message || 'Could not generate a quiz.'}); }
+}
+
 async function extractPatternPaper(request, response, url) {
   const filename = (url.searchParams.get('name') || 'Question paper').slice(0, 120);
   const year = inferExamYear(filename,(url.searchParams.get('year') || '').slice(0, 20));
@@ -65,10 +104,13 @@ async function extractPatternPaper(request, response, url) {
       if (crossCheck.questions.length) paper.questions=crossCheck.questions;
     }
     if (!paper.questions.length) return json(response, 422, {error:'Nexora could not identify questions in this paper. Try a clearer scan or another copy.'});
+    paper.markReviewCount=paper.questions.filter(question=>question.markConfidence==='uncertain').length;
     paper.id=crypto.randomUUID();
     paper.addedAt=new Date().toISOString();
     paper.processing=scanned?'Scanned text extraction and automatic cross-check':'Selectable PDF text';
-    json(response, 200, {paper,processing:{scanned,providers:crossCheck.providers,warnings:crossCheck.warnings,ocrAgreement:pages.filter(page=>page.source==='ocr').map(page=>page.agreement)}});
+    const warnings=[...crossCheck.warnings];
+    if(paper.markReviewCount) warnings.push(`${paper.markReviewCount} question mark value${paper.markReviewCount===1?'':'s'} could not be confirmed and were left blank.`);
+    json(response, 200, {paper,processing:{scanned,providers:crossCheck.providers,warnings,ocrAgreement:pages.filter(page=>page.source==='ocr').map(page=>page.agreement)}});
   } catch (error) { json(response, 422, {error:error.message || 'Could not read this question paper.'}); }
 }
 
@@ -202,6 +244,8 @@ async function closeRagSession(request,response) {
 http.createServer(async (request, response) => {
   const url = new URL(request.url, `http://${host}:${port}`);
   if (url.pathname === '/api/summarize' && request.method === 'POST') return summarize(request, response);
+  if (url.pathname === '/api/schedule/generate' && request.method === 'POST') return generateSchedule(request, response);
+  if (url.pathname === '/api/quizzes/generate' && request.method === 'POST') return generateQuiz(request, response);
   if (url.pathname === '/api/pattern/extract' && request.method === 'POST') return extractPatternPaper(request, response, url);
   if (url.pathname === '/api/pattern/analyze' && request.method === 'POST') return analyzePattern(request, response);
   if (url.pathname === '/api/pattern/topics' && request.method === 'POST') return topicImportance(request,response);

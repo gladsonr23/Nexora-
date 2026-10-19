@@ -11,6 +11,8 @@
     formatDate,
     weekdayName,
     takeActiveMaterial,
+    listVaultMaterials,
+    vaultMaterialPayload,
     loadingBlock,
     errorBlock,
     emptyBlock
@@ -32,6 +34,24 @@
     tab: 'today',
   };
 
+  function savePlan(plan) {
+    try {
+      localStorage.setItem('nexora-study-plan', JSON.stringify(plan));
+      const plans = JSON.parse(localStorage.getItem('nexora-study-plans') || '[]');
+      const list = Array.isArray(plans) ? plans : [];
+      const compatible = {
+        id: plan.planId,
+        title: plan.subject,
+        courseName: plan.subject,
+        tasks: plan.tasks.map(task => ({...task, id:task.taskId, title:task.topic, completed:task.status === 'completed'}))
+      };
+      const index = list.findIndex(item => item?.id === plan.planId);
+      if (index === -1) list.unshift(compatible); else list[index] = compatible;
+      localStorage.setItem('nexora-study-plans', JSON.stringify(list.slice(0, 30)));
+    } catch (_) {}
+    window.dispatchEvent(new CustomEvent('nexora:plan-updated', {detail:{planId:plan.planId}}));
+  }
+
   /*
    * Returns today's date in the user's local timezone as YYYY-MM-DD.
    * Do NOT use toISOString() here because that converts the date to UTC.
@@ -50,7 +70,7 @@
     container.innerHTML = loadingBlock('Reading available materials…');
 
     try {
-      state.materials = await api('/api/materials');
+      state.materials = await listVaultMaterials();
     } catch (err) {
       container.innerHTML = errorBlock(
         err.message || 'Could not load Vault materials.'
@@ -64,9 +84,14 @@
     }
 
     const preselect = takeActiveMaterial();
+    try {
+      const saved = JSON.parse(localStorage.getItem('nexora-study-plan') || 'null');
+      state.lastResult = saved && Array.isArray(saved.tasks) ? saved : null;
+    } catch (_) { state.lastResult = null; }
 
     container.innerHTML = renderConfigForm(preselect);
     wireConfigForm(container);
+    if (state.lastResult && container.querySelector('#nxs-results')) renderResults(container);
   }
 
   function renderConfigForm(preselectId) {
@@ -158,6 +183,7 @@
 
       </div>
 
+      <p class="nxm-help">The selected PDF stays in your browser Vault. Its contents are sent to Nexora’s server for text extraction and AI plan generation.</p>
       <div id="nxs-status"></div>
       <div id="nxs-results"></div>
     `;
@@ -256,14 +282,16 @@
     }, 1400);
 
     try {
+      const materialPayload = await vaultMaterialPayload(materialId);
       const result = await api('/api/schedule/generate', {
         method: 'POST',
 
         body: JSON.stringify({
-          materialId,
+          ...materialPayload,
           examDate,
           availableHours,
-          studyDays
+          studyDays,
+          today
         }),
       });
 
@@ -272,6 +300,8 @@
       statusEl.innerHTML = '';
 
       state.lastResult = result;
+      state.lastResult.materialId = materialId;
+      savePlan(state.lastResult);
       state.tab = 'today';
 
       renderResults(container);
@@ -511,16 +541,6 @@
                 : 'pending';
 
             try {
-              await api(
-                `/api/tasks/${taskId}`,
-                {
-                  method: 'PATCH',
-                  body: JSON.stringify({
-                    status
-                  })
-                }
-              );
-
               const task =
                 state.lastResult.tasks.find(
                   (t) =>
@@ -529,6 +549,7 @@
 
               if (task) {
                 task.status = status;
+                savePlan(state.lastResult);
               }
 
               renderResults(container);
