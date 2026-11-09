@@ -40,6 +40,18 @@ test('NVIDIA OCR uses the OCR endpoint and parses text detections',async () => {
   assert.match(result.text,/Define arrays/);
 });
 
+test('NVIDIA fetch failures preserve the raw network cause instead of implying a bad scan',async () => {
+  const cause = Object.assign(new Error('getaddrinfo ENOTFOUND ai.api.nvidia.com'),{code:'ENOTFOUND',hostname:'ai.api.nvidia.com',syscall:'getaddrinfo'});
+  const failure = new TypeError('fetch failed',{cause});
+  await assert.rejects(nvidiaOcr(Buffer.from('png'),'test-key',async () => { throw failure; }),error => {
+    assert.match(error.message,/NVIDIA OCR network request failed/);
+    assert.match(error.message,/ENOTFOUND/);
+    assert.equal(error.cause,failure);
+    assert.equal(error.cause.cause,cause);
+    return true;
+  });
+});
+
 test('Llama Vision OCR uses NVIDIA chat completions without exposing the key',async () => {
   const result=await llamaVisionOcr(Buffer.from('png'),'test-llama-key',async (url,options) => {
     assert.match(url,/integrate\.api\.nvidia\.com\/v1\/chat\/completions$/);
@@ -64,4 +76,18 @@ test('scanned PDF uses local Tesseract even if NVIDIA is unavailable',async () =
   assert.equal(pages[0].source,'ocr');
   assert.match(pages[0].tesseract.text,/inheritance/i);
   assert.equal(pages[0].status,'review');
+});
+
+test('blank scanned pages are skipped instead of reported as OCR failures',async () => {
+  const canvas=createCanvas(1400,500);
+  const context=canvas.getContext('2d');
+  context.fillStyle='white'; context.fillRect(0,0,1400,500);
+  const document=new jsPDF({unit:'pt',format:[700,250]});
+  document.addImage(canvas.toBuffer('image/png'),'PNG',0,0,700,250);
+  let requests=0;
+  const pages=await extractPdfWithOcr(Buffer.from(document.output('arraybuffer')),{fetchImpl:async()=>{requests+=1;throw new Error('must not call OCR for blank page');},nvidiaKey:'test-key',llamaKey:'test-llama-key'});
+  assert.equal(requests,0);
+  assert.equal(pages[0].source,'blank');
+  assert.equal(pages[0].text,'');
+  assert.deepEqual(pages[0].warnings,[]);
 });

@@ -17,6 +17,18 @@ export function pdfJsResourceOptions() {
   return {wasmUrl:directory('node_modules/pdfjs-dist/wasm'),standardFontDataUrl:directory('node_modules/pdfjs-dist/standard_fonts')};
 }
 
+function hasVisibleInk(context,width,height) {
+  const pixels=context.getImageData(0,0,width,height).data;
+  let dark=0;
+  let sampled=0;
+  for(let index=0;index<pixels.length;index+=64){
+    const luminance=(pixels[index]*0.299)+(pixels[index+1]*0.587)+(pixels[index+2]*0.114);
+    if(luminance<245) dark+=1;
+    sampled+=1;
+  }
+  return sampled>0 && dark/sampled>=0.001;
+}
+
 export function reconcileOcr(tesseract, nvidia, llama = null) {
   const local = String(tesseract?.text || '').trim();
   const remote = String(nvidia?.text || '').trim();
@@ -49,11 +61,21 @@ export function reconcileOcr(tesseract, nvidia, llama = null) {
 
 export async function nvidiaOcr(png, key, fetchImpl = fetch) {
   if (!key || key === 'PASTE_YOUR_KEY_HERE') throw new Error('A scan-reading service is not configured.');
-  const response = await fetchImpl(NVIDIA_OCR_URL, {
-    method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json'},
-    body: JSON.stringify({input:[{type:'image_url',url:`data:image/png;base64,${png.toString('base64')}`}],merge_levels:['paragraph']}),
-    signal: AbortSignal.timeout(45_000)
-  });
+  let response;
+  try {
+    response = await fetchImpl(NVIDIA_OCR_URL, {
+      method: 'POST', headers: {Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Accept: 'application/json'},
+      body: JSON.stringify({input:[{type:'image_url',url:`data:image/png;base64,${png.toString('base64')}`}],merge_levels:['paragraph']}),
+      signal: AbortSignal.timeout(45_000)
+    });
+  } catch (error) {
+    const cause = error?.cause;
+    const code = cause?.code || error?.code || '';
+    const details = [error?.message || 'request failed', code, cause?.message].filter(Boolean).join(' | ');
+    console.error('[Nexora OCR] NVIDIA network request failed', {message:error?.message, cause, code, hostname:cause?.hostname, syscall:cause?.syscall});
+    const timedOut = error?.name === 'TimeoutError' || code === 'UND_ERR_CONNECT_TIMEOUT' || code === 'ETIMEDOUT';
+    throw new Error(`NVIDIA OCR ${timedOut ? 'request timed out' : 'network request failed'}: ${details}`, {cause:error});
+  }
   if (!response.ok) throw new Error(`A scan-reading service returned HTTP ${response.status}.`);
   const data = await response.json();
   const detections = data?.data?.[0]?.text_detections || [];
@@ -99,11 +121,20 @@ export async function extractPdfWithOcr(bytes, {nvidiaKey,llamaKey,fetchImpl = f
         page.cleanup();
         continue;
       }
-      const viewport = page.getViewport({scale:2});
+      const viewport = page.getViewport({scale:3});
       const canvas = createCanvas(Math.ceil(viewport.width),Math.ceil(viewport.height));
-      await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+      const context=canvas.getContext('2d');
+      await page.render({canvasContext:context,viewport}).promise;
+      if(!hasVisibleInk(context,canvas.width,canvas.height)){
+        pages.push({number,text:'',source:'blank',warnings:[]});
+        page.cleanup();
+        continue;
+      }
       const png = canvas.toBuffer('image/png');
-      if (!worker) worker = await createWorker('eng',1,{langPath,cacheMethod:'none'});
+      if (!worker) {
+        worker = await createWorker('eng',1,{langPath,cacheMethod:'none'});
+        await worker.setParameters({preserve_interword_spaces:'1',user_defined_dpi:'300'});
+      }
       const [localResult, remoteResult, llamaResult] = await Promise.allSettled([
         worker.recognize(png).then(result => ({text:result.data.text,confidence:result.data.confidence})),
         nvidiaOcr(png,nvidiaKey,fetchImpl),
@@ -113,7 +144,7 @@ export async function extractPdfWithOcr(bytes, {nvidiaKey,llamaKey,fetchImpl = f
       const remote = remoteResult.status === 'fulfilled' ? remoteResult.value : null;
       const llama = llamaResult.status === 'fulfilled' ? llamaResult.value : null;
       const comparison = reconcileOcr(local,remote,llama);
-      pages.push({number,...comparison,source:'ocr',warnings:[localResult.status === 'rejected' ? 'One scan-reading pass could not read this page.' : null,remoteResult.status === 'rejected' ? 'A secondary scan-reading pass was unavailable.' : null,llamaResult.status === 'rejected' ? 'An additional scan-reading pass was unavailable.' : null].filter(Boolean)});
+      pages.push({number,...comparison,source:'ocr',warnings:[localResult.status === 'rejected' ? 'One scan-reading pass could not read this page.' : null,remoteResult.status === 'rejected' ? `NVIDIA OCR failed: ${remoteResult.reason.message || 'network or service error'}` : null,llamaResult.status === 'rejected' ? `Independent vision verification failed: ${llamaResult.reason.message || 'network or service error'}` : null].filter(Boolean)});
       page.cleanup();
     }
   } finally {

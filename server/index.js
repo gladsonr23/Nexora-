@@ -11,17 +11,22 @@ import { extractQuestionsWithAi } from './pattern-ai-extract.js';
 import { moderateNickname } from './nickname-moderation.js';
 import { chatStudyAssistant } from './study-chat.js';
 import { answerFromSession, reconcileSessionMaterials, removeRagSession, renameSessionMaterial, sessionStatus, upsertSessionMaterial, validateSessionId } from './rag.js';
+import { createQuiz, createStudyPlan } from './study-components.js';
 
 try { process.loadEnvFile(fileURLToPath(new URL('./.env', import.meta.url))); } catch (_) {}
 
 const dist = path.resolve(fileURLToPath(new URL('../dist/', import.meta.url)));
 const host = '127.0.0.1';
-const port = Number(process.env.PORT) || 4173;
+const port = Number(process.env.PORT) || 6767;
 const mime = {'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.png':'image/png'};
 
 function json(response, status, payload) {
   response.writeHead(status, {'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store'});
   response.end(JSON.stringify(payload));
+}
+
+function nvidiaNetworkWarning(pages) {
+  return pages.flatMap(page => page.warnings || []).find(warning => /NVIDIA OCR (?:network request failed|request timed out):/i.test(warning));
 }
 
 async function requestBody(request) {
@@ -61,7 +66,7 @@ async function studyMaterialText(input) {
   if (bytes.subarray(0, 5).toString() !== '%PDF-') throw new Error('The selected Vault file is not a valid PDF.');
   const pages = await extractPdfWithOcr(bytes, {nvidiaKey:process.env.NVIDIA_API_KEY,llamaKey:process.env.LLAMA_OCR_API_KEY || process.env.NVIDIA_API_KEY});
   const text = pages.map(page => page.text || '').filter(Boolean).join('\n\n');
-  if (text.replace(/\s/g, '').length < 80) throw new Error('No usable text could be read from this PDF. Try a clearer copy.');
+  if (text.replace(/\s/g, '').length < 80) throw new Error(nvidiaNetworkWarning(pages) || 'No usable text could be read from this PDF. Try a clearer copy.');
   return {text, name, subject};
 }
 
@@ -95,15 +100,23 @@ async function extractPatternPaper(request, response, url) {
     if (pdf && bytes.subarray(0, 5).toString() !== '%PDF-') return json(response, 400, {error:'This file is not a valid PDF.'});
     const nvidiaKey=process.env.NVIDIA_API_KEY;
     const pages = pdf ? await extractPdfWithOcr(bytes,{nvidiaKey,llamaKey:process.env.LLAMA_OCR_API_KEY || nvidiaKey}) : [{number:1,text:bytes.toString('utf8'),source:'selectable'}];
-    if (!pages.some(page => page.text.trim())) return json(response, 422, {error:'No readable text was found. Try a clearer scan.'});
+    if (!pages.some(page => page.text.trim())) {
+      const networkWarning=nvidiaNetworkWarning(pages);
+      return json(response,networkWarning?502:422,{error:networkWarning || 'No readable text was found. Try a clearer scan.'});
+    }
     const paper = parseQuestionPaper(pages, {filename,year});
     const scanned = pages.some(page => page.source === 'ocr');
     let crossCheck = {providers:[],warnings:[]};
     if (scanned) {
       crossCheck = await extractQuestionsWithAi(pages,{geminiKey:process.env.GEMINI_API_KEY,groqKey:process.env.GROQ_API_KEY,deterministic:paper.questions});
-      if (crossCheck.questions.length) paper.questions=crossCheck.questions;
+      paper.questions=crossCheck.questions.filter(question=>question.numberConfidence==='verified');
     }
-    if (!paper.questions.length) return json(response, 422, {error:'Nexora could not identify questions in this paper. Try a clearer scan or another copy.'});
+    if (!paper.questions.length) {
+      const message=scanned && !crossCheck.providers.length
+        ? 'Question numbers could not be independently verified because the AI verification service is unavailable. Try again shortly.'
+        : 'Nexora could not identify independently verified questions in this paper. Try a clearer scan or another copy.';
+      return json(response, 422, {error:message,processing:{scanned,providers:crossCheck.providers,warnings:crossCheck.warnings}});
+    }
     paper.markReviewCount=paper.questions.filter(question=>question.markConfidence==='uncertain').length;
     paper.id=crypto.randomUUID();
     paper.addedAt=new Date().toISOString();
