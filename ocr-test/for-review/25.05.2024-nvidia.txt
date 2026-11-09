@@ -1,0 +1,77 @@
+Reg. No
+B.Tech. / M.Tech. (Integrated) DEGREE EXAMINATION, MAY 2024
+Third Semester
+21MAB201T TRANSFORMS AND BOUNDARY VALUE PROBLEMS
+(For the candidates admitted chring the acodemic year 2022-2023 opwardd)
+Note:
+I. Part-AAshooid be answwred in OMR sheet within first 40 minutes and OMR shhct should be handed overrto i.
+hall invigilator at the end of 40"  innte..
+f. Part-B and Part- C hhuldd ee asserrddin answer bookket.
+Max. Marks: 75
+Time: 3 Hours
+PART A (20 x1 220  arr) Answer all Questions
+Marks BL
+CO
+1.
+2
+2
+1
+Fomn the PDE by climinating the arbitrary constants from z = ax2 bbby
+(A)
+(B) 22 q qx   pp
+2z qxqpyy
+(C)
+(D)
+22 px x q
+2z=px-qq
+2.
+Find the particular integral of (D2 + 5DD'--6D'')    22222yy
+(A)
+xe(2x+z))
+(B)
+g(2x+2))
+14
+14
+(D)
+xe12x+22'
+gxxx+2y
+24
+24
+3.
+What is the complementary function of (D -55DD+  D*22'
+(A) q1(vxxx)+x2(-xx)
+(B)
+(C) 4:(v-2x)+22((-3x)
+4.
+a²
+b 2
+Write the complete integral of z = ax + by
+2
+(A)
+(B)
+4
+2 =pxx+q+++   2
+2
+(C)
+(D)
+p
+2 = xx+++2p   2222
+2
+2
+5.
+f1,
+0
+Find the Fourier coefficient an of the function f(x) =
+1,
+0<  π π
+(A)2
+(B)
+2T
+(C)
+(D) 2
+2
+2
+0
+π
+Page 1of5
+25MF3-21MAB201T

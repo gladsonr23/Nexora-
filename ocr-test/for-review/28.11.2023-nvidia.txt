@@ -1,0 +1,69 @@
+Reg. No.
+B.Tech.DDGRRE EEXMMNNAIONN,NOVEMMEE  2023 Third Semester
+21MAB201T-TRANFORMS AND BOUNDARY VALUE PROBIEMSS (For the candidates admitted from the acudemic year 2022-2023)
+Note:
+Part-A should be answered in OMR sheet within first 40 minutes and OMR sheet should be bandes over to hall invigilator at the end of 40  minutc.
+(i)
+Max. Marks: 75
+Time: 3 Hours
+Marks We
+PART-A (20x1 1200k))) Answer ALL Questions
+2
+!
+1
+1. The complete integral of p-q is
+(B) z=a(x+y)+c
+(=)xzya
+(C)
+(C)
+z=ax+by+c
+(D) z=ax-by+a
+2
+2. The partial differential equation formed by eliminating arbitrary constants
+from z=(x+a)(y+b)
+(B) z-
+(A)
+2=ptq
+Z=p/q
+(D) z-pq
+3. The solution which has a number of arbitrary constants equal to the number
+of independent variables is
+(A) Non integral
+(B) Complete integrai
+(C)
+Particuulrrinneggral
+(D)gSingular integral
+1
+2
+1
+(B)-2222
+(A) xe(2x+2))
+14
+14
+(C)
+xe(2x+2y)
+(D) (22-2))
+24
+24
+1
+12
+5. The constant ag of the Fourier scries for the function f(x)=k,0<x≤2x
+is
+kA
+(B) 2k
+(C) 0
+(D) k/2
+1
+1
+2
+6. If f(x) is an even function in (-n   t hh   t e lul o  b         eoFrrrre
+scries expansion of f(x) is
+(B) 2 r
+(A) 1 p
+(C) 0
+(D) 2
+2
+f(x)sinnxxxx
+n
+28NA321MAB201T
+Pago1of44

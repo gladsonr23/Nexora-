@@ -1,0 +1,81 @@
+Reg. No.
+B.Tech./M.Tech. (Integrated) DEGREE EXAMINATION, NOVEMBER 2024 Third Semester
+21MAB201T TRANSFORMS AND BOUNDARY VALUE PROBLEMS
+(Por the candidates admitted from the academic year2021-2022 to 2023 2024
+Note:
+(t) Part A should be answered in OMR shect within first 40 minutes and OMR shest should be handed over to ball invigilator at the end of 40th minute.
+(ii Part-B &PPrrt-C hhould be answered in answer booklet.
+Time: 3 hours
+Max. Marks: 75
+PART A (200   2  2  arrks
+Marks BL CO PO
+Answer ALL Questions
+1. The partial
+1. The partial differential equation formed by eliminating arbitrary constants in
+in
+byaxaxxy is
+A)z = pxx +qq
+q
+B)  = qq ++py
+C)
+D)z = qx - py
+1. The partial differential equation formed by eliminating arbitrary function in   = f(zy) 1 2111
+is
+A)zp - yq = 1
+B)ap = yq
+C) P  +q   11
+D)P - q = 00
+1. The solttion which has number of arbitrary constants equal to number of indspendent 1
+1
+variables is called
+A) geerallintegral
+B) complete integral
+C) particular integral
+D)singular integral
+4.
+4.
+The complete integral of g = 2py is
+1
+A) z = ax + ay  +
+B) 2 = ax3 - ay? + b
+C) z = ax + by
+D)2 = 2xy
+5.
+1  The root mean quuare vauue offf)) =  iin 00, ))
+2
+A)
+B)
+3
+C)1
+D)
+3
+6.
+1. The value of the Fourier series off()) =    <<<<<<<
+0is
+0 is
+1
+2
+A)0
+B)I
+C)11
+D)÷
+7.
+1. The Fourier coefficient oo in the Fourier series expansion of f(x) = (  xx     2222
+1
+2
+js
+A)1 n
+B)1
+C)
+D)
+2
+8.
+π.
+1
+1
+A)0
+B)1
+1
+D)
+25NF321MAB201T
+Page 1 of 3

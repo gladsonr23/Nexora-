@@ -1,0 +1,84 @@
+Reg. No.
+B.Tech./M.Tech. (Integrated) DEGREE EXAMINATION, JULY 2204 Third Semester
+21MAB201T TRANSFORMS AND BOUNDARY VALUE PROBLEMS (For the candidates admitted from the academic year 2021 2022  nnards)
+Note:
+(i)
+Part A should be answered in OMR shect within first 40 minutes and OMR sheet should be handed over to hall invigilator at the end of 40tth  mnute.
+(li)
+Part B shouud be answered in answer booklet.
+Time: 3 Hours
+Max. Marks: 75
+PART A (222xx 22 Mkk Answer ALL Questions
+Marks
+BL
+CO
+1. The complete integral of p=qis
+1
+1
+1
+(A) z=ax+by
+(B)(zya(x+b) b
+(C) z=ax+by+c
+aDa z  aa-bbb +aaaaaaaaa
+2.
+D2{
+2
+2
+1
+1
+The complementary function of
+(=)
+(B)
+3.
+3. The particular integral of (D2-22DD)2
+1,2
+(A) e-xx
+(B)
+2x
+xe
+2
+4
+(C)
+22e2
+(D)
+2
+2
+4
+4. The complete integral of z  p ++++2 2
+1
+1
+1,2
+(A) z= px+++++bbb
+(B)
+z =axxbb2ab
+(C) z=ax++b++++qqpqqqqqq
+(D) z=px+qy+2pq
+5. The period of the periodic function sinx is
+1
+2
+1,2
+(A)π
+元
+(B) 2n)
+(C) 3π
+0
+6.
+a
+1
+1
+If f(x) is even then
+f (x)x  is
+a
+0
+(B)
+a 2x∫(x)dx 0
+(C)
+0
+0
+0
+(D)
+a j/{x}dx 0
+2xfxxxxxx
+-
+Page I of 4
+13JF3-21MAB201T

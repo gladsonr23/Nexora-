@@ -1,0 +1,65 @@
+Reg.NNo.
+B.Tech./ .Tech. (Integrated) DEGREE EXAMINATION, JULY 2025 Third Semester
+21MAB201T TRANSFORMS AND BOUNDARY VALUE PROBLEMS
+(For the candidates admitted from the academic year 2021-2022 to 2024-2023)
+Note:
+Part A should be answered in OMR sheet within first 40 minutes and OMR shoct should be hander over to hall invigilator at the end of 40 tt  inntt.
+(1)
+Max. Marks: 75
+Timc: 3 Hours
+Marks
+BL CO
+PART A  0 x0 220a20)
+Answer ALL Questions
+1. The partial differential equation formed by eliminating arbitrary constant is
+z=(x+a)(y+b)
+2=pt9
+(B)
+p p q
+(C)
+(D)
+z
+P
+g
+2. The general integral of z = xp   q iss
+(xx)))+z+z)=
+(B)
+x
+∅
+=0
+y
+z
+(C)
+x
+(D)
+x =
+=0
+-,yyy
+=
+2)
+3. The particular integral of (D'--2D'D''===e**2y
+eA-2e
+(B)
+e*
+3
+3
+(D)
+3
+1
+4. Solve(DD-7DD*--D***==0
+(A) z=f(y-x)+f(y-2x)+xy++x))
+(D) z=f(y+x)+f,(y+2x)+f(++xx)
+5. tan x is a periodic function with period
+2A)
+(B) π
+3
+(D) πu2
+6. The constant as of the Fourier scries for the function f(x)= ,, ≤≤≤≤π is
+1
+2
+2B
+(
+(C) 0
+(D) k/2
+1SJA3-21MAB2DIT
+Page 1 of 4
